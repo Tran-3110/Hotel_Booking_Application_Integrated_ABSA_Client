@@ -1,7 +1,7 @@
 import {createSlice} from "@reduxjs/toolkit";
 
 interface SearchSlice {
-    keyword: string;
+    keyword: string
 }
 
 const initialState: SearchSlice = {
