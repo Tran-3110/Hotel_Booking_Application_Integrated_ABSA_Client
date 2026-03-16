@@ -2,41 +2,32 @@
 import Form from "next/form";
 import {BedIcon, MapPin, Search} from "lucide-react";
 import {useEffect, useState} from "react";
-
-interface SuggestSearchResponse {
-    osm_id: string
-    lat: string
-    lon: string
-    class: string
-    name: string
-    display_name: string
-    address: {
-        city: string
-        country: string
-    }
-    boudingbox: string[]
-}
+import {suggestSearch} from "@/services/search-service";
+import {SuggestSearchResponse} from "@/common/types/suggest-search";
+import {useSelector} from "react-redux";
+import {ReduxState} from "@/constants/redux-state";
+import {useDispatch} from "react-redux";
+import {setKeyword} from "@/store/slices/searchSlice";
 
 export default function SearchToolBar() {
-    const [searchText, setSearchText] = useState("");
+    const searchText = useSelector((state:ReduxState) => state.searchState.keyword)
+    const dispatch = useDispatch();
     const [results, setResults] = useState<SuggestSearchResponse[]>([]);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            const autoSuggestSearch = async () => {
+            const handleSuggestSearch = async () => {
                 if (searchText.trim().length > 3) {
-                    const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${searchText}&format=json&addressdetails=1&limit=5&countrycodes=vn`, {})
-                    const data = await response.json();
-
+                    const data = await suggestSearch(searchText);
                     setResults(data);
                 }
             }
-            autoSuggestSearch();
+            handleSuggestSearch();
         }, 1100);
         
         //Xóa timeout cũ khi user nhấn phím mới
         return () => clearTimeout(delayDebounceFn);
-    }, [searchText]);
+    }, [searchText, dispatch]);
 
     return (
         <div className="w-120 flex-col z-100">
@@ -46,7 +37,7 @@ export default function SearchToolBar() {
                     <input className="focus:outline-none"
                            placeholder="Bạn muốn đến đâu?" name="query" onChange={(e) => {
                         if (e.target.value === "") setResults([])
-                        setSearchText(e.target.value)
+                        dispatch(setKeyword(e.target.value))
                     }}/>
                 </div>
 
