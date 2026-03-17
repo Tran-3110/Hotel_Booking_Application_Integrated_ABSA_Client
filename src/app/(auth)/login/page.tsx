@@ -1,6 +1,6 @@
 "use client";
 
-import { useLoginSchema, LoginValues } from "@/schemas/login-schema";
+import { LoginSchema, LoginValues } from "@/schemas/login-schema";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,10 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/use-auth";
+import { PasswordInput } from "@/components/password-input";
 
 export default function LoginForm() {
-    const loginSchema = useLoginSchema();
+    const loginSchema = LoginSchema();
     const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
     const { login } = useAuth()
@@ -88,12 +89,15 @@ export default function LoginForm() {
                 <div className="space-y-1">
                     <div className="flex justify-between items-center">
                         <label className="text-sm font-medium">Mật khẩu</label>
-                        <button type="button" className="cursor-pointer text-xs hover:underline">
+                        <button
+                            type="button"
+                            className="cursor-pointer text-xs hover:underline"
+                            onClick={() => router.push("/forgot-password")}
+                        >
                             Quên mật khẩu?
                         </button>
                     </div>
-                    <Input
-                        type="password"
+                    <PasswordInput
                         {...register("password")}
                         className={`py-4 mt-1 ${errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                     />

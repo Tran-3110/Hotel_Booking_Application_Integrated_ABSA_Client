@@ -4,18 +4,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
-import { RegisterValues, useRegisterSchema } from "@/schemas/register-schema";
+import { RegisterValues, RegisterSchema } from "@/schemas/register-schema";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useState } from "react";
 import { AuthResponse } from "@/common/types/auth";
 import { handleRegister } from "@/services/auth-service";
 import axios from "axios";
-import { Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { PasswordInput } from "@/components/password-input";
 
 export default function RegisterForm() {
-    const registerSchema = useRegisterSchema();
+    const registerSchema = RegisterSchema();
     const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
 
@@ -68,6 +69,19 @@ export default function RegisterForm() {
 
     return (
         <div className="w-full">
+            <div className="w-full">
+                <div className="flex justify-end gap-2">
+                    <Button
+                        variant={"ghost"}
+                        className="cursor-pointer"
+                        onClick={() => router.push("/login")}
+                    >
+                        <ArrowLeft />
+                        Trở về đăng nhập
+                    </Button>
+                </div>
+            </div>
+
             <div className="space-y-1 text-center my-8">
                 <h1 className="text-2xl font-bold">Tạo tài khoản mới</h1>
                 <p className="text-gray-500 text-sm">Nhập thông tin dưới đây để tạo tài khoản</p>
@@ -104,8 +118,7 @@ export default function RegisterForm() {
                     <div className="flex justify-between items-center">
                         <label className="text-sm font-medium">Nhập mật khẩu của bạn</label>
                     </div>
-                    <Input
-                        type="password"
+                    <PasswordInput
                         {...register("password")}
                         className={`py-4 mt-1 ${errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                     />
@@ -116,8 +129,7 @@ export default function RegisterForm() {
 
                 <div className="space-y-1">
                     <label className="text-sm font-medium">Xác nhận mật khẩu</label>
-                    <Input
-                        type="password"
+                    <PasswordInput
                         {...register("confirmPassword")}
                         className={`py-4 mt-1 ${errors.confirmPassword ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
@@ -143,11 +155,11 @@ export default function RegisterForm() {
                                 <span>
                                     Bằng cách click vào, bạn đã đồng ý với
                                 </span>
-                                <a href="/terms" className="text-primary underline hover:opacity-70">Điều khoản dịch vụ</a>
+                                <a href="/terms" className="mx-1 text-primary underline hover:opacity-70">Điều khoản dịch vụ</a>
                                 <span>
                                     và
                                 </span>
-                                <a href="/privacy" className="text-primary underline hover:opacity-70">Chính sách bảo mật</a>
+                                <a href="/privacy" className="mx-1 text-primary underline hover:opacity-70">Chính sách bảo mật</a>
                             </p>
                         </label>
                     </div>
