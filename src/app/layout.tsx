@@ -1,12 +1,7 @@
 import "./globals.css"
-import { Inter } from "next/font/google";
 import { Metadata } from "next";
 import LayoutProvider from "@/components/providers/layout-provider";
-
-const font = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+import { font } from "@/lib/font";
 
 export const metadata: Metadata = {
   title: {
