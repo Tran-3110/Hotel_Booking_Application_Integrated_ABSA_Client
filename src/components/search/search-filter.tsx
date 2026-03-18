@@ -4,7 +4,7 @@ import {ListFilter, Star} from "lucide-react";
 export default function SearchFilter() {
 
     return (
-        <div className="border w-70 rounded-lg shadow-xs px-4 py-6 bg-white">
+        <div className="border rounded-lg shadow-xs px-4 py-6 bg-white">
             <label className="flex items-center gap-2 font-bold mb-5 text-gray-800 border-b pb-2">
                 <ListFilter size={18}/> Bộ lọc
             </label>

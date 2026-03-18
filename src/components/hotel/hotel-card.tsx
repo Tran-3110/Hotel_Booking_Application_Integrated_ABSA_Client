@@ -13,6 +13,7 @@ export default function HotelCard(props: {
             <div className="relative w-full md:w-[320px] h-[200px] md:h-full overflow-hidden">
                 <Image
                     src={props.thumbnail}
+                    sizes="100wv"
                     alt="Hotel Image"
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
