@@ -1,11 +1,11 @@
 import "./globals.css"
-import { Geist } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Metadata } from "next";
 import LayoutProvider from "@/components/providers/layout-provider";
 
-const font = Geist({
+const font = Inter({
     subsets: ["latin"],
-    variable: "--font-geist",
+    variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
