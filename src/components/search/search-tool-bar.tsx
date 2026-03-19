@@ -33,14 +33,14 @@ export default function SearchToolBar() {
 
     return (
         <div className="w-120 relative">
-            <Form action="/search" className="flex w-full items-center gap-0 overflow-hidden rounded-full border border-input p-1.5 shadow-sm focus-within:ring-1 focus-within:ring-ring">
+            <Form action="/search" className="flex w-full items-center gap-0 overflow-hidden rounded-full border border-input px-1.5 py-1 shadow-sm focus-within:ring-1 focus-within:ring-ring bg-background">
                 <div className="flex items-center pl-4">
                     <BedIcon className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <Input
                     name="q"
                     placeholder="Bạn muốn đến đâu?"
-                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base h-10 bg-transparent flex-1"
+                    className=" border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base h-10 bg-transparent flex-1"
                     onChange={(e) => {
                         if (e.target.value === "") setResults([]);
                         dispatch(setKeyword(e.target.value));
@@ -60,21 +60,23 @@ export default function SearchToolBar() {
                 </Button>
             </Form>
 
-            <div className="w-full absolute border rounded-md mt-1 shadow-sm">
-                {results.map((result, index) => (
-                    <div key={index} className="p-2 hover:bg-gray-100 cursor-pointer border-b">
-                        <label className="flex items-center gap-1 cursor-pointer font-medium">
-                            <MapPin className="flex-1" size={"1.25rem"} />
-                            <span className="flex-12 text-sm">
-                                {result.display_name || result.name || result.address.city || "Chưa xác định địa điểm."}
-                            </span>
-                        </label>
-                        <p className="ps-10 text-xs text-gray-500">
-                            {result.address.country}
-                        </p>
-                    </div>
-                ))}
-            </div>
+            {results.length > 0 &&
+                <div className="w-full absolute border rounded-md mt-1 shadow-sm">
+                    {results.map((result, index) => (
+                        <div key={index} className="p-2 hover:bg-gray-100 cursor-pointer border-b">
+                            <label className="flex items-center gap-1 cursor-pointer font-medium">
+                                <MapPin className="flex-1" size={"1.25rem"} />
+                                <span className="flex-12 text-sm">
+                                    {result.display_name || result.name || result.address.city || "Chưa xác định địa điểm."}
+                                </span>
+                            </label>
+                            <p className="ps-10 text-xs text-gray-500">
+                                {result.address.country}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            }
         </div>
 
     )

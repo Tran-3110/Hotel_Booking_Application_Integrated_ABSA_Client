@@ -40,10 +40,10 @@ export function NavBar() {
     return (
         <div
             className={cn(
-                "fixed top-0 z-50 w-full transition-all duration-300",
-                isScrolled
-                    ? "border-b bg-background/80 backdrop-blur-md h-16"
-                    : "bg-transparent border-transparent h-20"
+                "fixed top-0 z-50 w-full transition-all duration-300 bg-background py-2",
+                // isScrolled
+                    // ? "border-b bg-background/80 backdrop-blur-md h-16"
+                    // : "bg-transparent border-transparent h-20"
             )}
         >
             <div className="container mx-auto flex h-full items-center justify-between px-4">
@@ -73,6 +73,27 @@ export function NavBar() {
 
                 <div className="flex items-center gap-2 md:gap-4">
                     {/* Theme button */}
+
+                    <Button
+                        variant="ghost"
+                        className={cn(
+                            "relative cursor-pointer transition-colors",
+                            !isScrolled && "text-foreground dark:text-white hover:bg-black/10 dark:hover:bg-white/10"
+                        )}
+                    >
+                        VND
+                    </Button>
+
+                    <Button
+                        variant="ghost"
+                        className={cn(
+                            "relative cursor-pointer transition-colors",
+                            !isScrolled && "text-foreground dark:text-white hover:bg-black/10 dark:hover:bg-white/10"
+                        )}
+                    >
+                        Hợp tác cùng chúng tôi
+                    </Button>
+
                     <Button
                         className={cn(
                             "cursor-pointer transition-colors",
@@ -94,16 +115,7 @@ export function NavBar() {
                     {mounted ?
                         user ? (
                             <>
-                                {/* <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className={cn(
-                                            "relative cursor-pointer transition-colors",
-                                            !isScrolled && "text-foreground dark:text-white hover:bg-black/10 dark:hover:bg-white/10" // Đã sửa
-                                        )}
-                                    >
-                                        <Bell className="h-5 w-5" />
-                                    </Button> */}
+
 
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
