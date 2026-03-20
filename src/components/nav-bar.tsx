@@ -13,12 +13,17 @@ import { useAuth } from "@/hooks/use-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { fallBackColor, getFallback } from "@/common/utils/avatar-loader";
+import { usePathname } from "next/navigation";
 
 export function NavBar() {
     const { user, logout } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
     const [mounted, setMounted] = useState(false);
     const { setTheme, theme } = useTheme();
+    const pathName = usePathname()
+    const isHomepage = pathName === "/"
+
+    const isShowSearchBar = !isHomepage || isScrolled
 
     useEffect(() => {
         const frame = requestAnimationFrame(() => {
@@ -42,8 +47,8 @@ export function NavBar() {
             className={cn(
                 "fixed top-0 z-50 w-full transition-all duration-300 bg-background py-2",
                 // isScrolled
-                    // ? "border-b bg-background/80 backdrop-blur-md h-16"
-                    // : "bg-transparent border-transparent h-20"
+                // ? "border-b bg-background/80 backdrop-blur-md h-16"
+                // : "bg-transparent border-transparent h-20"
             )}
         >
             <div className="container mx-auto flex h-full items-center justify-between px-4">
@@ -68,7 +73,16 @@ export function NavBar() {
                     </Link>
 
                     {/* SearchBar */}
-                    <SearchToolBar />
+                    <div
+                        className={cn(
+                            "transition-all duration-500 ease-in-out flex items-center origin-left",
+                            isShowSearchBar
+                                ? "max-w-150 opacity-100 scale-100 ml-4"
+                                : "max-w-0 opacity-0 scale-95 pointer-events-none ml-0"
+                        )}
+                    >
+                        <SearchToolBar />
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-4">
