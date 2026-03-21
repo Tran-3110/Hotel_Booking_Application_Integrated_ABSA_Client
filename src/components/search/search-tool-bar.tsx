@@ -71,7 +71,7 @@ export default function SearchToolBar({ variant }: { variant?: 'header' | 'landi
                     name="q"
                     placeholder="Bạn muốn đến đâu?"
                     className={cn(
-                        "border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent flex-1",
+                        "border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent! flex-1",
                         variant === "landing" ? "text-lg! h-12" : "text-base h-10"
                     )}
                     onFocus={() => {
@@ -93,7 +93,6 @@ export default function SearchToolBar({ variant }: { variant?: 'header' | 'landi
                     className={cn(
                         "rounded-full font-medium transition-all cursor-pointer",
                         "bg-indigo-700 hover:bg-indigo-800 text-white",
-                        "disabled:bg-indigo-500 disabled:cursor-not-allowed",
                         variant === "landing" ? "px-8 h-12 text-base" : "px-6 h-10 text-sm"
                     )}
                 >

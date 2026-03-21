@@ -3,18 +3,18 @@
 import { imageLoader } from "@/common/utils/image-loader";
 import { NavBar } from "@/components/nav-bar";
 import { Button } from "@/components/ui/button";
+import { FieldSeparator } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { cn } from "@/lib/utils";
-import { ArrowRight, MapPin, Search, Star } from "lucide-react";
+import { ArrowRight, MapPin, Star } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
 
-    const heroOpacity = Math.max(1 - scrollY / 250, 0);
-    const isHeroHidden = heroOpacity === 0;
+    // const heroOpacity = Math.max(1 - scrollY / 250, 0);
+    // const isHeroHidden = heroOpacity === 0;
 
     return (
         <div>
@@ -36,8 +36,8 @@ export default function Home() {
                     className="absolute z-2 mt-8 flex flex-col gap-8 justify-center items-center w-full h-full"
                     style={{
                         // opacity: heroOpacity,
-                        transform: `translateY(${scrollY * 0.4}px)`,
-                        pointerEvents: isHeroHidden ? "none" : "auto"
+                        // transform: `translateY(${scrollY * 0.4}px)`,
+                        // pointerEvents: isHeroHidden ? "none" : "auto"
                     }}
                 >
                     <div className="space-y-3">
@@ -88,14 +88,12 @@ export default function Home() {
                                             </SelectGroup>
                                         </SelectContent>
                                     </Select>
-
-
                                 </div>
 
                                 <div className="flex items-end">
                                     <Button
                                         variant={"default"}
-                                        className="px-4 py-5 cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg dark:bg-white dark:text-black dark:hover:bg-white/90"
+                                        className="px-4 py-5 cursor-pointer bg-indigo-700 hover:bg-indigo-800 text-white"
                                     >
                                         Tìm kiếm
                                         <ArrowRight />
@@ -107,10 +105,77 @@ export default function Home() {
                 </div>
             </section>
             {/* Detail section */}
-            <section>
-                <div className="relative h-screen w-full">
+            <section className="px-12 py-8">
+                <div className="w-full space-y-4">
+                    <div>
+                        <h3 className="font-semibold text-2xl">
+                            Điểm đến đang thịnh hành
+                        </h3>
+                        <p className="text-muted-foreground">
+                            Các lựa chọn phổ biến nhất cho du khách tại Việt Nam
+                        </p>
+                    </div>
+                    <div className="flex gap-4 justify-center h-50">
+                        {
+                            ["TP.Hồ Chí Minh", "Hà Nội", "Đà Lạt", "Hội An", "Vũng Tàu"].map((ele, index) => (
+                                <div key={index} className="flex-1 space-y-2">
+                                    {/* Temporary image, prototype only */}
+                                    <div className="relative w-full h-full">
+                                        <Image
+                                            className="object-cover rounded-2xl"
+                                            src={"https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
+                                            alt="Background"
+                                            fill
+                                        />
+                                    </div>
+                                    <div>
+                                        <p className="text-center text-lg font-semibold">{ele}</p>
+                                        <p className="text-center text-sm text-muted-foreground">500 chỗ ở</p>
+                                    </div>
+                                </div>
+                            ))
+                        }
+                    </div>
                 </div>
             </section>
+            <footer className="relative w-full mt-12 bg-muted">
+                <div className="flex gap-4 px-12 py-3">
+                    <div className="flex-1 space-y-4">
+                        <h4 className="font-semibold">
+                            Hỗ trợ
+                        </h4>
+                        <div>
+                            <p className="my-1"><Link className="text-sm hover:text-muted-foreground" href={"/security-center"}>Trung tâm thông tin bảo mật</Link></p>
+                        </div>
+                    </div>
+                    <div className="flex-1 space-y-3">
+                        <h4 className="font-semibold">
+                            Điều khoản và chính sách
+                        </h4>
+                        <div>
+                            <Link className="text-sm hover:text-muted-foreground" href={"/privacy-policy"}><p className="my-1">Chính sách bảo mật</p></Link>
+                            <Link className="text-sm hover:text-muted-foreground" href={"/term-of-service"}><p className="my-1">Điều khoản dịch vụ</p></Link>
+                            <Link className="text-sm hover:text-muted-foreground" href={"/accessibility-statement"}><p className="my-1">Chính sách về Khả năng tiếp cận</p></Link>
+                        </div>
+                    </div>
+                    <div className="flex-1 space-y-3">
+                        <h4 className="font-semibold">
+                            Về chúng tôi
+                        </h4>
+                        <div>
+                            <Link className="text-sm hover:text-muted-foreground" href={"/about-us"}><p className="my-1">Về HomeBook</p></Link>
+                            <Link className="text-sm hover:text-muted-foreground" href={"/contact-us"}><p className="my-1">Liên hệ chúng tôi</p></Link>
+                        </div>
+                    </div>
+                </div>
+                <FieldSeparator />
+                <div className="flex justify-center p-4">
+                    <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground text-center">&copy; 2026 HomeBook. Bảo lưu mọi quyền</p>
+                        <p className="text-xs text-muted-foreground text-center">Địa chỉ: Khu phố 33, phường Linh Trung, Thủ Đức, TP.HCM</p>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 }
