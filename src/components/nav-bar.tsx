@@ -13,17 +13,17 @@ import { useAuth } from "@/hooks/use-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { fallBackColor, getFallback } from "@/common/utils/avatar-loader";
-import { usePathname } from "next/navigation";
+// import { usePathname } from "next/navigation";
 
 export function NavBar() {
     const { user, logout } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
     const [mounted, setMounted] = useState(false);
     const { setTheme, theme } = useTheme();
-    const pathName = usePathname()
-    const isHomepage = pathName === "/"
+    // const pathName = usePathname()
+    // const isHomepage = pathName === "/"
 
-    const isShowSearchBar = !isHomepage || isScrolled
+    // const isShowSearchBar = !isHomepage || isScrolled
 
     useEffect(() => {
         const frame = requestAnimationFrame(() => {
@@ -75,10 +75,10 @@ export function NavBar() {
                     {/* SearchBar */}
                     <div
                         className={cn(
-                            "transition-all duration-500 ease-in-out flex items-center origin-left",
-                            isShowSearchBar
-                                ? "max-w-150 opacity-100 scale-100 ml-4"
-                                : "max-w-0 opacity-0 scale-95 pointer-events-none ml-0"
+                            "transition-all duration-500 ease-in-out flex items-center origin-left max-w-150 opacity-100 scale-100 ml-4",
+                            // isShowSearchBar
+                                // ? "max-w-150 opacity-100 scale-100 ml-4"
+                                // : "max-w-0 opacity-0 scale-95 pointer-events-none ml-0"
                         )}
                     >
                         <SearchToolBar />
@@ -194,7 +194,7 @@ export function NavBar() {
                                 <Link href="/register">
                                     <Button className={cn(
                                         "w-24 py-4.5 cursor-pointer transition-all",
-                                        !isScrolled && "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg dark:bg-white dark:text-black dark:hover:bg-white/90" // Đã tinh chỉnh
+                                        !isScrolled && "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg dark:bg-white dark:text-black dark:hover:bg-white/90"
                                     )}>
                                         Đăng ký
                                     </Button>
