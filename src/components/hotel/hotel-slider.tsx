@@ -14,8 +14,10 @@ export default function HotelSlider({ images }: {images: string[]}) {
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
 
     return (
-        <div className="relative group max-w-4xl mx-auto">
+        <div className="relative group max-w-5xl mx-auto">
             <Swiper
+                observer={true}
+                observeParents={true}
                 loop={true}
                 spaceBetween={10}
                 navigation={{
@@ -24,7 +26,7 @@ export default function HotelSlider({ images }: {images: string[]}) {
                 }}
                 thumbs={{ swiper: thumbsSwiper }}
                 modules={[FreeMode, Navigation, Thumbs, Pagination]}
-                className="rounded-lg overflow-hidden h-[400px]"
+                className="rounded-lg overflow-hidden h-[500px]"
             >
                 {images.map((img, index) => (
                     <SwiperSlide key={index}>

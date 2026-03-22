@@ -1,6 +1,6 @@
 import Link from "next/link";
 import HotelSlider from "@/components/hotel/hotel-slider";
-import {EyeIcon, MapPin, Star} from "lucide-react";
+import {ChevronsRight, EyeIcon, MapPin, Star} from "lucide-react";
 import IconHotelUtility from "@/components/icon-render/icon-hotel-utility";
 import {
     Table,
@@ -11,6 +11,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {RoomType} from "@/components/hotel/room-type";
 
 export default async function HotelDetail({params} : {params: Promise<{slug: string}>}) {
     // Structure: slug.id
@@ -64,76 +65,128 @@ Khách sạn sở hữu hệ thống phòng nghỉ cao cấp với tầm nhìn b
         ],
         roomTypes: [
             {
-                id: "12332",
-                name: "Phòng VIP 1",
-                description: "",
+                id: "VIP-101",
+                name: "Phòng VIP 1 - Luxury King Suite",
+                description: `
+      <div class="space-y-2">
+        <p><strong>Mã hạng phòng: VIP-101.</strong> Trải nghiệm đẳng cấp thượng lưu với không gian rộng 60m², nội thất gỗ óc chó và tầm nhìn panorama hướng biển.</p>
+        <ul class="list-disc pl-5 text-sm text-gray-600">
+          <li>Giường King Size tiêu chuẩn quốc tế.</li>
+          <li>Hệ thống điều khiển ánh sáng và rèm tự động.</li>
+          <li>Phòng tắm đứng và bồn tắm nằm riêng biệt.</li>
+        </ul>
+      </div>
+    `,
                 capacity: 2,
-                price: 22323232,
-                roomUtilities: {
-                    id: 1223,
-                    name: "Giường đôi",
-                    iconCode: "bed"
-                },
+                price: 5500000,
+                roomUtilities: [
+                    { id: 1, name: "Điều hòa", iconCode: "air_conditioner" },
+                    { id: 2, name: "Máy pha cà phê", iconCode: "coffee" },
+                    { id: 3, name: "Bồn tắm Jacuzzi", iconCode: "tower" }
+                ],
                 roomTypeImages: [
-                    {
-                        id: 1212,
-                        url: ""
-                    }
+                    "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?q=80&w=1200&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=1200&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1200&auto=format&fit=crop"
+                ],
+                depositedPercent: 0.3
+            },
+            {
+                id: "DLX-202",
+                name: "Phòng Deluxe Twin",
+                description: `
+      <div class="space-y-2">
+        <p><strong>Mã hạng phòng: DLX-202.</strong> Phù hợp cho khách đi công tác hoặc du lịch cặp đôi với phong cách tối giản, hiện đại và đầy đủ tiện nghi.</p>
+        <ul class="list-disc pl-5 text-sm text-gray-600">
+          <li>2 Giường đơn cao cấp.</li>
+          <li>Bàn làm việc rộng rãi, đầy đủ ổ cắm điện.</li>
+          <li>Cửa sổ lớn đón ánh sáng tự nhiên.</li>
+        </ul>
+      </div>
+    `,
+                capacity: 2,
+                price: 2200000,
+                roomUtilities: [
+                    { id: 4, name: "Điều hòa", iconCode: "air_conditioner" },
+                    { id: 5, name: "Tivi Smart 4K", iconCode: "tv" },
+                    { id: 6, name: "Két sắt an toàn", iconCode: "shield" }
+                ],
+                roomTypeImages: [
+                    "https://images.unsplash.com/photo-1566665797739-1674de7a421a?q=80&w=1200&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1595571024048-45a59177f538?q=80&w=1200&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1591088398332-8a77d399e843?q=80&w=1200&auto=format&fit=crop"
+                ],
+                depositedPercent: 0.2
+            },
+            {
+                id: "FAM-303",
+                name: "Phòng Family Ocean View",
+                description: `
+      <div class="space-y-2">
+        <p><strong>Mã hạng phòng: FAM-303.</strong> Không gian lý tưởng cho gia đình 4 người với diện tích lớn và khu vực sinh hoạt chung ấm cúng.</p>
+        <ul class="list-disc pl-5 text-sm text-gray-600">
+          <li>1 Giường đôi và 2 giường đơn.</li>
+          <li>Khu vực ghế sofa thư giãn hướng biển.</li>
+          <li>Trái cây tươi và nước suối miễn phí hàng ngày.</li>
+        </ul>
+      </div>
+    `,
+                capacity: 4,
+                price: 4800000,
+                roomUtilities: [
+                    { id: 7, name: "Tủ lạnh Mini", iconCode: "refrigerator" },
+                    { id: 8, name: "Ban công hướng biển", iconCode: "waves" },
+                    { id: 9, name: "Bữa sáng miễn phí", iconCode: "utensils" }
+                ],
+                roomTypeImages: [
+                    "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?q=80&w=1200&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?q=80&w=1200&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=1200&auto=format&fit=crop"
                 ],
                 depositedPercent: 0.3
             }
         ],
         hotline: "5778908",
         viewCount: 1000,
-        regulation: [
+        regulations: [
             {
                 id: 1,
-                name: "Thời gian Nhận & Trả phòng",
+                name: "Nhận & Trả phòng",
                 description: `
-            <p>Để đảm bảo công tác chuẩn bị phòng ốc chu đáo nhất, quý khách vui lòng lưu ý các mốc thời gian sau:</p>
-            <ul class="list-disc pl-5 mt-2">
-                <li><strong>Giờ nhận phòng (Check-in):</strong> Từ 14:00 hàng ngày.</li>
-                <li><strong>Giờ trả phòng (Check-out):</strong> Trước 12:00 trưa hàng ngày.</li>
-                <li><em>Phụ phí:</em> Trả phòng muộn từ 12:00 - 18:00 tính 50% tiền phòng; sau 18:00 tính 100% tiền phòng (tùy thuộc vào tình trạng phòng trống).</li>
+            <ul class="list-disc pl-5 space-y-1">
+                <li><strong>Check-in:</strong> Sau 14:00.</li>
+                <li><strong>Check-out:</strong> Trước 12:00.</li>
+                <li><em>Phụ thu trả muộn:</em> 50% (đến 18:00), 100% (sau 18:00).</li>
             </ul>
         `
             },
             {
                 id: 2,
-                name: "Giấy tờ tùy thân & Đăng ký",
+                name: "Thủ tục đăng ký",
                 description: `
-            <p>Theo quy định của pháp luật hiện hành về lưu trú:</p>
-            <ul class="list-disc pl-5 mt-2">
-                <li>Khách nội địa vui lòng xuất trình <strong>CCCD/CMND</strong> hoặc Hộ chiếu bản gốc còn hạn.</li>
-                <li>Khách quốc tế vui lòng xuất trình <strong>Hộ chiếu và Visa</strong> (hoặc giấy miễn thị thực) hợp lệ.</li>
-                <li>Trẻ em cần có Giấy khai sinh bản sao hoặc bản chính nếu không đi cùng bố mẹ có tên trong hộ khẩu.</li>
-            </ul>
+            <p>Xuất trình <strong>CCCD/Hộ chiếu</strong> bản gốc (Khách quốc tế cần Visa/Giấy miễn thị thực hợp lệ). Trẻ em cần Giấy khai sinh.</p>
         `
             },
             {
                 id: 3,
-                name: "Danh mục hàng cấm & Hạn chế",
+                name: "Danh mục cấm",
                 description: `
-            <div class="bg-red-50 p-3 border-l-4 border-red-500">
-                <p class="font-semibold text-red-700">Tuyệt đối không mang các vật dụng sau vào khuôn viên khách sạn:</p>
-                <ul class="list-disc pl-5 mt-1 text-red-600">
-                    <li>Vũ khí, chất nổ, chất dễ cháy hoặc các loại hóa chất độc hại.</li>
-                    <li>Chất gây nghiện, ma túy và các chất cấm khác theo quy định của pháp luật.</li>
-                    <li>Các loại trái cây có mùi nồng (sầu riêng, mít...) hoặc thực phẩm nặng mùi trong phòng ngủ.</li>
-                    <li>Vật nuôi hoặc thú cưng (trừ khi có sự thỏa thuận và đồng ý bằng văn bản từ Ban quản lý).</li>
-                </ul>
-            </div>
+            <ul class="list-disc pl-5 text-red-600 font-medium">
+                <li>Vũ khí, chất cháy nổ, ma túy.</li>
+                <li>Trái cây nặng mùi (Sầu riêng, mít...).</li>
+                <li>Vật nuôi, thú cưng.</li>
+            </ul>
         `
             },
             {
                 id: 4,
-                name: "An toàn & Nội quy chung",
+                name: "Nội quy chung",
                 description: `
-            <ul class="list-decimal pl-5 space-y-2">
-                <li><strong>Hút thuốc:</strong> Nghiêm cấm hút thuốc trong phòng ngủ. Quý khách vui lòng sử dụng khu vực ban công hoặc khu vực hút thuốc công cộng được chỉ định.</li>
-                <li><strong>Trật tự:</strong> Giữ yên tĩnh, không gây ồn ào hoặc tổ chức đánh bạc, các hoạt động trái pháp luật trong phòng.</li>
-                <li><strong>Tài sản:</strong> Vui lòng gửi đồ vật có giá trị cao tại két sắt an toàn trong phòng hoặc ký gửi tại quầy lễ tân.</li>
-                <li><strong>Vệ sinh:</strong> Không tự ý di chuyển đồ đạc hoặc mang trang thiết bị của khách sạn ra khỏi phòng khi chưa được phép.</li>
+            <ul class="list-disc pl-5">
+                <li><strong>Không hút thuốc</strong> trong phòng.</li>
+                <li>Giữ yên tĩnh sau 22:00.</li>
+                <li>Gửi tài sản quý giá tại két sắt hoặc Lễ tân.</li>
+                <li>Không tự ý di chuyển trang thiết bị phòng.</li>
             </ul>
         `
             }
@@ -141,9 +194,9 @@ Khách sạn sở hữu hệ thống phòng nghỉ cao cấp với tầm nhìn b
     };
     
     return (
-        <div className="px-50">
+        <div className="px-0 md:px-60">
             <nav className="sticky top-0 z-10 bg-white">
-                <div className="w-full max-w-5xl border-b flex gap-6 w-full">
+                <div className="w-full border-b flex gap-6 w-full">
                     {navItems.map((item) => (
                         <Link
                             key={item.href}
@@ -156,7 +209,19 @@ Khách sạn sở hữu hệ thống phòng nghỉ cao cấp với tầm nhìn b
                     ))}
                 </div>
             </nav>
-            <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="z-90 fixed top-18 right-[15rem] w-[20rem] bg-white border rounded-lg p-6 shadow">
+                <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-500">Giá mỗi đêm từ</span>
+                    <span className="text-xl font-semibold text-orange-600">3.200.000₫</span>
+                </div>
+
+                <button
+                    className="flex gap-2 justify-center items-center w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-lg shadow-lg transition-all active:scale-95">
+                    <ChevronsRight /> Kiểm tra phòng trống
+                </button>
+            </div>
+            
+            <div className="px-4 py-8 gap-8">
                 <div className="lg:col-span-2 space-y-10">
 
                     {/* 1. Header & Breadcrumb */}
@@ -177,7 +242,7 @@ Khách sạn sở hữu hệ thống phòng nghỉ cao cấp với tầm nhìn b
                             className="text-red-700"/> {hotel.address}</p>
                     </section>
                     {/* 2. Hotel Slider*/}
-                    <section className="rounded-2xl overflow-hidden shadow-lg">
+                    <section className="rounded-2xl overflow-hidden">
                         <HotelSlider images={hotel.images}/>
                     </section>
                     {/* 3. Hotel Utilities */}
@@ -206,7 +271,7 @@ Khách sạn sở hữu hệ thống phòng nghỉ cao cấp với tầm nhìn b
                                     <TableHead>Loại phòng</TableHead>
                                     <TableHead>Thanh toán trước</TableHead>
                                     <TableHead>Số lượng khách</TableHead>
-                                    <TableHead className="text-right">Khám phá</TableHead>
+                                    <TableHead>Khám phá</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -215,7 +280,7 @@ Khách sạn sở hữu hệ thống phòng nghỉ cao cấp với tầm nhìn b
                                         <TableCell className="font-medium">{r.name}</TableCell>
                                         <TableCell>{r.depositedPercent * 100} %</TableCell>
                                         <TableCell>{r.capacity}</TableCell>
-                                        <TableCell className="text-right">Xem chi tiết</TableCell>
+                                        <TableCell><RoomType key={index} room={r}/></TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -223,23 +288,25 @@ Khách sạn sở hữu hệ thống phòng nghỉ cao cấp với tầm nhìn b
                     </section>
                     {/* 6. Regulation */}
                     <section id="regulation" className="prose max-w-none">
-                        <p className="text-lg font-semibold mb-2">Quy định chung</p>
-                        <div className="text-gray-700 leading-relaxed">
-                            {hotel.regulation.map((item, index) => (
-                                <div key={index} className="mb-4">
-                                    <h3 className="font-semibold text-blue-800 mb-1">{index+1}. {item.name}</h3>
-                                    <div
-                                        className="text-gray-700"
-                                        dangerouslySetInnerHTML={{ __html: item.description }}
-                                    />
-                                </div>
-                            ))}
-
-                            <p className="italic text-sm text-gray-500 mt-4">
-                                * Khách sạn có quyền từ chối phục vụ hoặc mời quý khách rời đi nếu vi phạm nghiêm trọng
-                                các quy định trên mà không hoàn lại tiền phòng.
-                            </p>
+                        <p className="text-lg font-semibold mb-4">Quy định chung</p>
+                        <div className="border rounded-lg p-4">
+                            <Table>
+                                <TableBody>
+                                    {hotel.regulations.map((r, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell className="font-medium">{r.name}</TableCell>
+                                            <TableCell>
+                                                <div dangerouslySetInnerHTML={{__html: r.description}}></div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
                         </div>
+                        <p className="italic text-sm text-gray-500 mt-4">
+                            * Khách sạn có quyền từ chối phục vụ hoặc mời quý khách rời đi nếu vi phạm nghiêm trọng
+                            các quy định trên mà không hoàn lại tiền phòng.
+                        </p>
                     </section>
                     {/* 7. Comments*/}
                     <section id="price" className="border-t py-8">
@@ -248,25 +315,6 @@ Khách sạn sở hữu hệ thống phòng nghỉ cao cấp với tầm nhìn b
                     </section>
                 </div>
 
-                {/* CỘT PHẢI: BOX ĐẶT PHÒNG (STICKY) */}
-                <div className="lg:col-span-1">
-                    <div className="sticky top-24 bg-white border rounded-2xl p-6 shadow-xl space-y-6">
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-500">Giá mỗi đêm từ</span>
-                            <span className="text-3xl font-black text-orange-600">3.200.000₫</span>
-                        </div>
-
-                        <button
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95">
-                            Kiểm tra phòng trống
-                        </button>
-
-                        <ul className="text-sm text-gray-500 space-y-2 border-t pt-4">
-                            <li className="flex items-center gap-2">✅ Hủy miễn phí trước 24h</li>
-                            <li className="flex items-center gap-2">✅ Không cần thanh toán ngay</li>
-                        </ul>
-                    </div>
-                </div>
 
             </div>
         </div>
