@@ -46,9 +46,9 @@ export function NavBar() {
         <div
             className={cn(
                 "fixed top-0 z-50 w-full transition-all duration-300 bg-background py-2",
-                // isScrolled
-                // ? "border-b bg-background/80 backdrop-blur-md h-16"
-                // : "bg-transparent border-transparent h-20"
+                isScrolled
+                ? "border-b-2 shadow-md h-16"
+                : "border-transparent h-20"
             )}
         >
             <div className="container mx-auto flex h-full items-center justify-between px-4">
