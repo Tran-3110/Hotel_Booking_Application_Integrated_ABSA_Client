@@ -1,5 +1,6 @@
 "use client"
 
+import { HomePageStatisticResponse } from "@/common/types/home";
 import { imageLoader } from "@/common/utils/image-loader";
 import { NavBar } from "@/components/nav-bar";
 import { Badge } from "@/components/ui/badge";
@@ -9,14 +10,26 @@ import { FieldSeparator } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getHomePageData } from "@/services/home-service";
 import { ArrowRight, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Home() {
 
     // const heroOpacity = Math.max(1 - scrollY / 250, 0);
     // const isHeroHidden = heroOpacity === 0;
+
+    const [data, setData] = useState<HomePageStatisticResponse | null>(null)
+
+    useEffect(() => {
+        const fetchHomeData = async () => {
+            const homeData = await getHomePageData()
+            setData(homeData)
+        }
+        fetchHomeData()
+    }, [])
 
     return (
         <div>
@@ -118,24 +131,42 @@ export default function Home() {
                         </p>
                     </div>
                     <div className="flex gap-4 justify-center h-50">
-                        {
-                            ["TP.Hồ Chí Minh", "Hà Nội", "Đà Lạt", "Hội An", "Vũng Tàu"].map((ele, index) => (
-                                <div key={index} className="flex-1 space-y-2">
-                                    {/* Temporary image, prototype only */}
+                        {data && data.provinceStatistics &&
+                            data.provinceStatistics.map(province => (
+                                <div key={province.name} className="flex-1 space-y-2">
                                     <div className="relative w-full h-full">
                                         <Image
                                             className="object-cover rounded-2xl"
-                                            src={"https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
+                                            src={province.thumbnail}
                                             alt="Background"
                                             fill
                                         />
                                     </div>
                                     <div>
-                                        <p className="text-center text-lg font-semibold">{ele}</p>
-                                        <p className="text-center text-sm text-muted-foreground">500 chỗ ở</p>
+                                        <p className="text-center text-lg font-semibold">{province.name}</p>
+                                        <p className="text-center text-sm text-muted-foreground">{province.hotelCount} chỗ ở</p>
                                     </div>
                                 </div>
                             ))
+                        }
+                        {
+                            // ["TP.Hồ Chí Minh", "Hà Nội", "Đà Lạt", "Hội An", "Vũng Tàu"].map((ele, index) => (
+                            //     <div key={index} className="flex-1 space-y-2">
+                            //         {/* Temporary image, prototype only */}
+                            //         <div className="relative w-full h-full">
+                            //             <Image
+                            //                 className="object-cover rounded-2xl"
+                            //                 src={"https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
+                            //                 alt="Background"
+                            //                 fill
+                            //             />
+                            //         </div>
+                            //         <div>
+                            //             <p className="text-center text-lg font-semibold">{ele}</p>
+                            //             <p className="text-center text-sm text-muted-foreground">500 chỗ ở</p>
+                            //         </div>
+                            //     </div>
+                            // ))
                         }
                     </div>
                 </div>
