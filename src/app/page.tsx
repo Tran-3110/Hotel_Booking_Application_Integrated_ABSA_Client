@@ -11,16 +11,12 @@ import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getHomePageData } from "@/services/home-service";
-import { ArrowRight, MapPin, Star } from "lucide-react";
+import { ArrowRight, Building2, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function Home() {
-
-    // const heroOpacity = Math.max(1 - scrollY / 250, 0);
-    // const isHeroHidden = heroOpacity === 0;
-
     const [data, setData] = useState<HomePageStatisticResponse | null>(null)
 
     useEffect(() => {
@@ -47,14 +43,7 @@ export default function Home() {
                     />
                 </div>
 
-                <div
-                    className="absolute z-2 mt-8 flex flex-col gap-8 justify-center items-center w-full h-full"
-                    style={{
-                        // opacity: heroOpacity,
-                        // transform: `translateY(${scrollY * 0.4}px)`,
-                        // pointerEvents: isHeroHidden ? "none" : "auto"
-                    }}
-                >
+                <div className="absolute z-2 mt-8 flex flex-col gap-8 justify-center items-center w-full h-full">
                     <div className="space-y-3">
                         <h3 className="text-neutral-50 text-4xl font-semibold">
                             Tìm chỗ nghỉ tiếp theo cho chuyến du lịch của bạn
@@ -64,8 +53,8 @@ export default function Home() {
                         </p>
                     </div>
 
-                    <div className=" w-full z-3">
-                        <div className=" bg-background m-6 mx-16 rounded-xl p-4 space-y-4">
+                    <div className="w-full z-3">
+                        <div className="bg-background m-6 mx-16 rounded-xl p-4 space-y-4">
                             <div className="flex justify-center gap-4">
                                 <div className="flex-2 space-y-2">
                                     <p className="font-semibold">Địa điểm</p>
@@ -119,7 +108,7 @@ export default function Home() {
                     </div>
                 </div>
             </section>
-            {/* Detail section */}
+            
             <section className="px-12 py-8">
                 <div className="w-full space-y-4">
                     <div>
@@ -149,28 +138,10 @@ export default function Home() {
                                 </div>
                             ))
                         }
-                        {
-                            // ["TP.Hồ Chí Minh", "Hà Nội", "Đà Lạt", "Hội An", "Vũng Tàu"].map((ele, index) => (
-                            //     <div key={index} className="flex-1 space-y-2">
-                            //         {/* Temporary image, prototype only */}
-                            //         <div className="relative w-full h-full">
-                            //             <Image
-                            //                 className="object-cover rounded-2xl"
-                            //                 src={"https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
-                            //                 alt="Background"
-                            //                 fill
-                            //             />
-                            //         </div>
-                            //         <div>
-                            //             <p className="text-center text-lg font-semibold">{ele}</p>
-                            //             <p className="text-center text-sm text-muted-foreground">500 chỗ ở</p>
-                            //         </div>
-                            //     </div>
-                            // ))
-                        }
                     </div>
                 </div>
             </section>
+            
             <section className="px-12 py-8 my-12">
                 <div className="w-full space-y-4">
                     <div>
@@ -185,7 +156,6 @@ export default function Home() {
                         {
                             ["TP.Hồ Chí Minh", "Hà Nội", "Đà Lạt", "Hội An", "Vũng Tàu"].map((ele, index) => (
                                 <div key={index} className="flex-1 space-y-2">
-                                    {/* Temporary image, prototype only */}
                                     <div className="relative w-full h-full">
                                         <Image
                                             className="object-cover rounded-2xl"
@@ -204,7 +174,8 @@ export default function Home() {
                     </div>
                 </div>
             </section>
-            <section className="px-12 pt-8 ">
+            
+            <section className="px-12 pt-8">
                 <div className="w-full space-y-4">
                     <div>
                         <h3 className="font-semibold text-2xl">
@@ -214,57 +185,68 @@ export default function Home() {
                             Các điểm đến đề xuất tại TP.Hồ Chí Minh
                         </p>
                     </div>
-                    <div className="flex gap-4 justify-center h-50">
+                    <div className="flex gap-4 justify-center items-stretch">
                         {
                             ["TP.Hồ Chí Minh", "Hà Nội", "Đà Lạt", "Hội An", "Vũng Tàu"].map((ele, index) => (
-
-                                <Card key={index} className="flex-1 relative mx-auto w-full pt-0 h-fit">
-                                    {/* Temporary image, prototype only */}
-                                    <div className="relative w-full h-full aspect-video">
+                                <Card key={index} className="flex-1 flex flex-col relative mx-auto w-full pt-0 overflow-hidden">
+                                    <div className="relative w-full aspect-video shrink-0">
                                         <Image
-                                            className="object-cover rounded-tr-2xl rounded-tl-2xl"
+                                            className="object-cover"
                                             src={"https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
                                             alt="Background"
                                             fill
                                         />
                                     </div>
-                                    <CardHeader>
+                                    
+                                    <CardHeader className="flex-1">
                                         <CardAction className="space-y-1">
-                                            <Badge className="bg-yellow-500">
+                                            <Badge className="bg-yellow-500 hover:bg-yellow-600 mb-2">
                                                 4.5
-                                                <Star fill="white" />
+                                                <Star fill="white" className="w-3 h-3 ml-1" />
                                             </Badge>
                                             <p className="text-xs text-muted-foreground">Xuất sắc</p>
                                         </CardAction>
-                                        <CardTitle>
+                                        <CardTitle className="text-lg">
                                             Lorem ipsum dolor
                                         </CardTitle>
-                                        <CardDescription className="flex items-center gap-1">
+                                        <CardDescription className="flex items-center gap-1 mt-1">
                                             <MapPin size={"1rem"} />
                                             {ele}
                                         </CardDescription>
                                     </CardHeader>
-                                    <CardFooter className="flex justify-end gap-2 bg-background border-0">
+                                    
+                                    <CardFooter className="flex flex-col items-end justify-end gap-1 bg-background border-t pt-4">
                                         <p className="text-end text-red-500 line-through text-xs">4.000.000 VNĐ</p>
                                         <p className="text-end font-semibold text-lg">3.000.000 VNĐ</p>
                                     </CardFooter>
                                 </Card>
-
-                                // <div key={index} className="flex-1 space-y-2">
-
-
-                                //     <div>
-                                //         <p className="text-center text-lg font-semibold">{ele}</p>
-                                //         <p className="text-center text-sm text-muted-foreground">500 chỗ ở</p>
-                                //     </div>
-                                // </div>
                             ))
                         }
                     </div>
                 </div>
             </section>
-            <footer className="relative w-full mt-40 bg-muted">
-                <div className="flex gap-4 px-12 py-3">
+
+            <section className="px-12 py-16 my-16 bg-indigo-50 flex flex-col md:flex-row items-center justify-between gap-8 border border-indigo-100 shadow-sm">
+                <div className="space-y-5 max-w-2xl px-8">
+                    <h3 className="font-bold text-3xl text-indigo-950">
+                        Đăng ký chỗ nghỉ của bạn trên HomeBook
+                    </h3>
+                    <p className="text-lg text-indigo-800">
+                        Tiếp cận hàng triệu khách du lịch nội địa và quốc tế. Trở thành đối tác của chúng tôi ngay hôm nay để quản lý đặt phòng dễ dàng và tăng doanh thu cho khách sạn của bạn.
+                    </p>
+                    <Link href="/partner/register" className="inline-block mt-4">
+                        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-6 text-lg font-semibold shadow-md transition-all hover:shadow-lg">
+                            Trở thành đối tác
+                        </Button>
+                    </Link>
+                </div>
+                <div className="hidden md:flex items-center justify-center p-8 bg-indigo-200/50 rounded-full mr-12">
+                    <Building2 className="w-40 h-40 text-indigo-600" strokeWidth={1.5} />
+                </div>
+            </section>
+
+            <footer className="relative w-full mt-24 bg-muted">
+                <div className="flex gap-4 px-12 py-8">
                     <div className="flex-1 space-y-3">
                         <h4 className="font-semibold">
                             Hỗ trợ
@@ -294,7 +276,7 @@ export default function Home() {
                     </div>
                 </div>
                 <FieldSeparator />
-                <div className="flex justify-center p-4">
+                <div className="flex justify-center p-6">
                     <div className="space-y-1">
                         <p className="text-xs text-muted-foreground text-center">&copy; 2026 HomeBook. Bảo lưu mọi quyền</p>
                         <p className="text-xs text-muted-foreground text-center">Địa chỉ: Khu phố 33, phường Linh Trung, Thủ Đức, TP.HCM</p>
