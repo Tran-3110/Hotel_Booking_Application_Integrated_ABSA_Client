@@ -7,10 +7,11 @@ import { SuggestSearchResponse } from "@/common/types/suggest-search";
 import { useSelector } from "react-redux";
 import { ReduxState } from "@/constants/redux-state";
 import { useDispatch } from "react-redux";
-import { setKeyword } from "@/store/slices/searchSlice";
+import {setKeyword} from "@/store/slices/searchSlice";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { cn } from "@/lib/utils";
+import { useRouter } from 'next/navigation';
 
 export default function SearchToolBar({ variant }: { variant?: 'header' | 'landing' }) {
     const searchText = useSelector((state: ReduxState) => state.searchState.keyword)
@@ -18,6 +19,7 @@ export default function SearchToolBar({ variant }: { variant?: 'header' | 'landi
     const [results, setResults] = useState<SuggestSearchResponse[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const router = useRouter()
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -88,13 +90,19 @@ export default function SearchToolBar({ variant }: { variant?: 'header' | 'landi
                     }}
                 />
                 <Button
-                    type="submit"
+                    type={"button"}
                     disabled={searchText.trim().length === 0}
                     className={cn(
                         "rounded-full font-medium transition-all cursor-pointer",
                         "bg-indigo-700 hover:bg-indigo-800 text-white",
                         variant === "landing" ? "px-8 h-12 text-base" : "px-6 h-10 text-sm"
                     )}
+                    onClick={() => {
+                        const lat = results[0].lat
+                        const lon = results[0].lon
+                        const bbox = results[0].boundingbox.join(",")
+                        router.push(`/search?q=${searchText}&lat=${lat}&lon=${lon}&bbox=${bbox}`);
+                    }}
                 >
                     <Search className="mr-1 h-4 w-4" />
                     Tìm kiếm
@@ -110,7 +118,10 @@ export default function SearchToolBar({ variant }: { variant?: 'header' | 'landi
                         <div key={index} className={cn(
                             "hover:bg-accent/50 cursor-pointer border-b last:border-0 transition-colors",
                             variant === "landing" ? "p-4" : "p-2.5"
-                        )}>
+                        )} onClick={() => {
+                            const bbox = result.boundingbox.join(",");
+                            router.push(`/search?q=${result.display_name || result.name || result.address?.city || "Chưa xác định địa điểm."}&lat=${result.lat}&lon=${result.lon}&bbox=${bbox}`);
+                        }}>
                             <label className="flex items-start gap-2.5 cursor-pointer">
                                 <MapPin className={cn(
                                     "text-muted-foreground shrink-0 mt-0.5",

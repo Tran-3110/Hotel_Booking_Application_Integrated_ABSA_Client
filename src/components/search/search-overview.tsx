@@ -8,7 +8,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 
-export default function SearchOverview(props: {keyword: string}) {
+export default function SearchOverview(props: {keyword: string, count: number}) {
     const category = [
         {
             name: "Giá cả",
@@ -43,7 +43,7 @@ export default function SearchOverview(props: {keyword: string}) {
     ]
     return (
         <div className="py-3 w-full text-end">
-            <label className="font-semibold text-lg">{props.keyword}: Đã tìm thấy 123 khách sạn</label>
+            <label className="font-semibold text-lg">{props.keyword}: Đã tìm thấy {props.count} khách sạn</label>
             
             <div className="flex justify-end mt-3">
                 <Select>

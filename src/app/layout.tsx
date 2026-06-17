@@ -2,6 +2,7 @@ import "./globals.css"
 import { Metadata } from "next";
 import LayoutProvider from "@/components/providers/layout-provider";
 import { font } from "@/lib/font";
+import {NavBar} from "@/components/nav-bar";
 
 export const metadata: Metadata = {
   title: {
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <head />
       <body>
         <LayoutProvider>
+          <NavBar />
           {children}
         </LayoutProvider>
       </body>
