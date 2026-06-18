@@ -147,31 +147,43 @@ export default function Home() {
                 <div className="w-full space-y-6">
                     <div>
                         <h3 className="font-semibold text-2xl">Khám phá Việt Nam</h3>
-                        <p className="text-muted-foreground">Những điểm đến không thể bỏ lỡ cho kỳ nghỉ của bạn</p>
+                        <p className="text-muted-foreground">Những chỗ nghỉ nổi bật không thể bỏ lỡ cho kỳ nghỉ của bạn</p>
                     </div>
-                    <div className="flex gap-4 justify-center items-stretch overflow-x-auto pb-4">
-                        {data?.provinceStatistics?.slice(5, 10).map(province => (
-                            <div key={province.name} className="flex-1 min-w-50 space-y-3 cursor-pointer group">
-                                <div className="relative w-full aspect-4/5 rounded-2xl overflow-hidden shadow-sm">
+                    {/* Chuyển sang Grid 5 cột chằn chặn giống mục Khách sạn nổi bật */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-stretch">
+                        {data && data.exploreHotels && data.exploreHotels.map(hotel => (
+                            <Link
+                                href={`/hotel/${hotel.id}`}
+                                key={hotel.id}
+                                className="flex flex-col relative w-full pt-0 overflow-hidden cursor-pointer border rounded-xl bg-card text-card-foreground shadow transition-all hover:shadow-lg hover:-translate-y-1"
+                            >
+                                {/* Ảnh tỉ lệ 4:3 đồng bộ hoàn toàn */}
+                                <div className="relative w-full aspect-4/3 shrink-0">
                                     <Image
-                                        className="object-cover transition-transform duration-300 group-hover:scale-110"
-                                        src={province.thumbnail}
-                                        alt={province.name}
+                                        className="object-cover"
+                                        src={hotel.thumbnail}
+                                        alt={hotel.name}
                                         fill
                                         unoptimized={true}
                                     />
-                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-300"></div>
                                 </div>
-                                <div>
-                                    <p className="text-center text-lg font-semibold">{province.name}</p>
-                                    <p className="text-center text-sm text-muted-foreground">{province.hotelCount} chỗ ở</p>
-                                </div>
-                            </div>
+
+                                <CardHeader className="flex-1 p-4 flex flex-col justify-between">
+                                    <div className="space-y-2">
+                                        <CardTitle className="text-base leading-tight line-clamp-2" title={hotel.name}>
+                                            {hotel.name}
+                                        </CardTitle>
+                                        <CardDescription className="flex items-start gap-1 text-xs mt-auto">
+                                            <MapPin size={14} className="shrink-0 mt-0.5" />
+                                            <span className="line-clamp-1">{hotel.province}</span>
+                                        </CardDescription>
+                                    </div>
+                                </CardHeader>
+                            </Link>
                         ))}
                     </div>
                 </div>
             </section>
-
             <section className="max-w-7xl mx-auto px-6 py-12">
                 <div className="w-full space-y-6">
                     <div>

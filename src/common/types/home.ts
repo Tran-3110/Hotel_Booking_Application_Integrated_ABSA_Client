@@ -5,6 +5,13 @@ export interface ProvinceStatistic {
     thumbnail: string;
 }
 
+export interface ExploreHotelResponse {
+    id: string;
+    name: string;
+    thumbnail: string;
+    province: string;
+}
+
 export interface PromotionalHotelResponse {
     id: string;
     name: string;
@@ -17,5 +24,6 @@ export interface PromotionalHotelResponse {
 
 export interface HomePageStatisticResponse {
     provinceStatistics: ProvinceStatistic[];
+    exploreHotels: ExploreHotelResponse[];
     promotionalHotels: PromotionalHotelResponse[];
 }
