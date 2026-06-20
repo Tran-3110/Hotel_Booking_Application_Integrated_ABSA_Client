@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
                 hostname: 'tiles.stadiamaps.com',
                 port: '',
                 pathname: "/**",
+            },
+            {
+                protocol: 'https',
+                hostname: 'cf.bstatic.com',
+                port: '',
             }
         ],
         qualities: [30, 75],
