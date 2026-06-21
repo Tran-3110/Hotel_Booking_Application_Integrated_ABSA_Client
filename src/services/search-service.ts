@@ -1,8 +1,8 @@
 import axios from "axios";
 import {SuggestSearchResponse} from "@/common/types/suggest-search";
 import apiClient from "@/services/api-client";
-import {SearchHotelResponse} from "@/types/hotel";
-import {PageResponse} from "@/types/page";
+import {CardHotelResponse} from "@/common/types/hotel";
+import {PageResponse} from "@/common/types/page";
 
 export const suggestSearch = async (keyword: string) => {
     const response = await axios.get<SuggestSearchResponse[]>(`https://nominatim.openstreetmap.org/search?q=${keyword}&format=json&addressdetails=1&limit=5&countrycodes=vn`)
@@ -17,7 +17,7 @@ export const searchHotels = async (
     minRating?: number,
     minPrice?: number,
     maxPrice?: number,
-): Promise<PageResponse<SearchHotelResponse>> => {
+): Promise<PageResponse<CardHotelResponse>> => {
     const response = await apiClient.get(`/search/hotels`, {
         params: {
             type: type,

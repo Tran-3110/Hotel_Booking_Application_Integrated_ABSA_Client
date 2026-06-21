@@ -13,8 +13,8 @@ import {
 import SearchOverview from "@/components/search/search-overview";
 import { useEffect, useState } from "react";
 import { searchHotels } from "@/services/search-service";
-import { SearchHotelResponse } from "@/types/hotel";
-import { PageResponse } from "@/types/page";
+import { CardHotelResponse } from "@/common/types/hotel";
+import { PageResponse } from "@/common/types/page";
 import {useSelector} from "react-redux";
 import {ReduxState} from "@/constants/redux-state";
 
@@ -28,20 +28,18 @@ interface SearchListProps {
 export default function SearchList(props: SearchListProps) {
     const {starCount, minPrice, maxPrice, checkFilter} = useSelector((state: ReduxState) => state.searchState);
     
-    const [data, setData] = useState<PageResponse<SearchHotelResponse>>();
+    const [data, setData] = useState<PageResponse<CardHotelResponse>>();
     const [page, setPage] = useState<number>(0); 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
         const fetch = async () => {
             setIsLoading(true);
-            console.log(props.bbox)
             try {
                 if(props.lat && props.lon && props.lat.trim().length > 0 && props.lon.trim().length > 0) {
                     let extent:number[];
                     if (props.bbox) {
                         extent = props.bbox.split(",").map(e => Number(e));
-                        console.log(extent);
                     } else {
                         extent = [Number(props.lat), Number(props.lon)];
                     }

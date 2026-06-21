@@ -1,6 +1,6 @@
 import Link from "next/link";
 import HotelSlider from "@/components/hotel/hotel-slider";
-import {ChevronsRight, EyeIcon, MapPin, Star} from "lucide-react";
+import {EyeIcon, MapPin, Star} from "lucide-react";
 import IconHotelUtility from "@/components/icon-render/icon-hotel-utility";
 import {
     Table,
@@ -12,8 +12,9 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import {RoomType} from "@/components/hotel/room-type";
-import {hotelService} from "@/services/hotel.service";
+import {hotelService} from "@/services/hotel-service";
 import {notFound} from "next/navigation";
+import CheckRoomBox from "@/components/hotel/check-room-box";
 
 const navItems = [
     { name: 'Tổng quan', href: '#overview' },
@@ -48,7 +49,7 @@ export default async function HotelDetail({params} : {params: Promise<{slug: str
     
     return (
         <div className="px-0 md:px-60">
-            <nav className="sticky top-0 z-10 bg-white">
+            <nav className="sticky top-18 z-10 bg-white">
                 <div className="w-full border-b flex gap-6 w-full">
                     {navItems.map((item) => (
                         <Link
@@ -62,19 +63,8 @@ export default async function HotelDetail({params} : {params: Promise<{slug: str
                     ))}
                 </div>
             </nav>
-            <div className="z-90 fixed top-18 right-[15rem] w-[20rem] bg-white border rounded-lg p-6 shadow">
-                <div className="flex justify-between items-center mb-2">
-                    <span className="text-gray-500">Giá mỗi đêm từ</span>
-                    <span className="text-xl font-semibold text-orange-600">3.200.000₫</span>
-                </div>
-
-                <button
-                    className="flex gap-2 justify-center items-center w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-lg shadow-lg transition-all active:scale-95">
-                    <ChevronsRight /> Kiểm tra phòng trống
-                </button>
-            </div>
             
-            <div className="px-4 py-8 gap-8">
+            <div className="pt-30 px-4 py-8 gap-8">
                 <div className="lg:col-span-2 space-y-10">
 
                     {/* 1. Header & Breadcrumb */}
@@ -92,7 +82,15 @@ export default async function HotelDetail({params} : {params: Promise<{slug: str
 
                         </div>
                         <p className="text-sm text-gray-600 mt-3 flex gap-2"><MapPin
-                            className="text-red-700"/> {hotel.address.street}, {hotel.address.ward}, {hotel.address.province}</p>
+                            className="text-red-700"/> {hotel.address.street}, {hotel.address.ward}, {hotel.address.province}
+                        </p>
+                        <div className="absolute w-70 top-36 right-[15rem]">
+                            <CheckRoomBox checkPage={"hotel"} id={hotelId} viewCount={hotel.viewCount}
+                                          title={hotel.name} thumbnail={hotel.thumbnail}
+                                          address={hotel.address.street + ", " + hotel.address.ward + ", " + hotel.address.province}
+                                          avgRating={hotel.avgRating}/>
+                        </div>
+                        
                     </section>
                     {/* 2. Hotel Slider*/}
                     <section className="rounded-2xl overflow-hidden">

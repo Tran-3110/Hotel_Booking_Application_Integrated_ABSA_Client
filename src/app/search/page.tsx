@@ -20,9 +20,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     return (
         <div className="flex gap-3 px-50 pt-20 mb-15">
             
-            <div className="w-70 top-25 h-fit z-50">
+            <div className="w-70 top-25 h-fit">
                 <div className="border rounded-lg overflow-hidden w-full h-40 relative mb-2">
-                    <Button className="bottom-2 bg-indigo-500 hover:bg-indigo-600 left-[20%] right-[20%] absolute z-60">
+                    <Button className="bottom-2 bg-indigo-500 hover:bg-indigo-600 left-[20%] right-[20%] absolute z-10">
                         <MapPin />Xem trên bản đồ</Button>
                     <Image className="object-cover absolute" sizes="auto" fill
                            src={`https://api.maptiler.com/maps/streets-v2/static/106.697424,10.771918,15/600x400@2x.png?key=`} alt="Hình ảnh map" /> 

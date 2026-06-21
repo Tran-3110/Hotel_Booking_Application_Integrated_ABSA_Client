@@ -54,7 +54,7 @@ export interface HotelResponse {
     hotelRegulations: HotelRegulationResponse[];
 }
 
-export interface SearchHotelResponse {
+export interface CardHotelResponse {
     id: string; 
     name: string;
     thumbnail: string;

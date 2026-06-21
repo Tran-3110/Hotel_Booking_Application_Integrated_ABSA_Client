@@ -1,5 +1,5 @@
 import apiClient from "@/services/api-client";
-import {HotelResponse} from "@/types/hotel";
+import {CardHotelResponse, HotelResponse} from "@/common/types/hotel";
 
 export const hotelService = {
     getHotelById: async (id: string): Promise<HotelResponse> => {
@@ -8,6 +8,14 @@ export const hotelService = {
                 id: id,
             }
         });
+        return res.data
+    },
+    getSnapshotById: async (id: string): Promise<CardHotelResponse> => {
+        const res = await apiClient.get(`/hotel/get-snapshot`, {
+            params: {
+                id: id,
+            }
+        })
         return res.data
     }
 }

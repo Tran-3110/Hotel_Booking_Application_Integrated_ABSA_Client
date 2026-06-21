@@ -52,7 +52,7 @@ export default function SearchToolBar({ variant }: { variant?: 'header' | 'landi
         <div
             ref={containerRef}
             className={cn(
-                "relative transition-all duration-300",
+                "relative bg-white transition-all duration-300 z-100",
                 variant === "landing" ? "w-full max-w-3xl" : "w-120"
             )}
         >
@@ -98,9 +98,9 @@ export default function SearchToolBar({ variant }: { variant?: 'header' | 'landi
                         variant === "landing" ? "px-8 h-12 text-base" : "px-6 h-10 text-sm"
                     )}
                     onClick={() => {
-                        const lat = results[0].lat
-                        const lon = results[0].lon
-                        const bbox = results[0].boundingbox.join(",")
+                        const lat = results[0].lat || undefined
+                        const lon = results[0].lon || undefined
+                        const bbox = results[0].boundingbox.join(",") || undefined
                         router.push(`/search?q=${searchText}&lat=${lat}&lon=${lon}&bbox=${bbox}`);
                     }}
                 >
@@ -116,7 +116,7 @@ export default function SearchToolBar({ variant }: { variant?: 'header' | 'landi
                 )}>
                     {results.map((result, index) => (
                         <div key={index} className={cn(
-                            "hover:bg-accent/50 cursor-pointer border-b last:border-0 transition-colors",
+                            "hover:bg-accent/50 cursor-pointer border-b last:border-0 transition-colors z-200",
                             variant === "landing" ? "p-4" : "p-2.5"
                         )} onClick={() => {
                             const bbox = result.boundingbox.join(",");
