@@ -1,14 +1,17 @@
 import Image from "next/image";
 import {ChevronRight, MapPin, Star} from "lucide-react";
 import {Button} from "@/components/ui/button";
+import {transformTitleToSlug} from "@/common/utils/slug";
+import Link from "next/link";
 
 export default function HotelCard(props: {
     hotelId: string, thumbnail: string, title: string, totalComment: number, avgRating: number, 
     address: string, description: string, oldPrice: number, newPrice: number 
 }) {
     return (
-        <div
-            className="hover:shadow group relative flex flex-col md:flex-row w-full h-auto md:h-[240px] bg-white rounded-xl overflow-hidden border border-gray-200 transition-all duration-300">
+        <Link href={`/hotel/${transformTitleToSlug(props.title)}.${props.hotelId}`}
+            className="hover:shadow group relative flex flex-col md:flex-row w-full h-auto md:h-[240px] bg-white rounded-xl overflow-hidden border border-gray-200 transition-all duration-300"
+        >
 
             <div className="relative w-full md:w-[320px] h-[200px] md:h-full overflow-hidden">
                 <Image
@@ -68,6 +71,6 @@ export default function HotelCard(props: {
                     </Button>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 }

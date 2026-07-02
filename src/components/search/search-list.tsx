@@ -1,3 +1,5 @@
+"use client"; 
+
 import HotelCard from "@/components/hotel/hotel-card";
 import {
     Pagination,
@@ -8,90 +10,144 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import SearchOverview from "@/components/search/search-overview";
+import { useEffect, useState } from "react";
+import { searchHotels } from "@/services/search-service";
+import { CardHotelResponse } from "@/common/types/hotel";
+import { PageResponse } from "@/common/types/page";
+import {useSelector} from "react-redux";
+import {ReduxState} from "@/constants/redux-state";
 
-export default function SearchList() {
-    const MOCK_HOTELS = [
-        {
-            hotelId: "H1",
-            thumbnail: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop",
-            title: "Grand Luxury Resort & Spa",
-            totalComment: 1450,
-            avgRating: 4.9,
-            address: "Bãi Dài, Phú Quốc, Kiên Giang",
-            description: "Trải nghiệm kỳ nghỉ đẳng cấp 5 sao với hồ bơi vô cực sát biển và dịch vụ spa tận tâm.",
-            oldPrice: 5500000,
-            newPrice: 4200000,
-        },
-        {
-            hotelId: "H2",
-            thumbnail: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800&auto=format&fit=crop",
-            title: "The Heritage Boutique Hotel",
-            totalComment: 856,
-            avgRating: 4.7,
-            address: "Trần Phú, Nha Trang, Khánh Hòa",
-            description: "Khách sạn phong cách kiến trúc Đông Dương độc đáo, tọa lạc ngay mặt tiền biển Nha Trang sầm uất.",
-            oldPrice: 2800000,
-            newPrice: 2150000,
-        },
-        {
-            hotelId: "H3",
-            thumbnail: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=800&auto=format&fit=crop",
-            title: "Mountain View Lodge",
-            totalComment: 420,
-            avgRating: 4.6,
-            address: "Mường Hoa, Sa Pa, Lào Cai",
-            description: "Nằm lưng chừng núi với tầm nhìn ôm trọn thung lũng Mường Hoa và những ruộng bậc thang kỳ vĩ.",
-            oldPrice: 1950000,
-            newPrice: 1600000,
-        },
-        {
-            hotelId: "H4",
-            thumbnail: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=800&auto=format&fit=crop",
-            title: "Central Urban Suites",
-            totalComment: 2100,
-            avgRating: 4.4,
-            address: "Lê Thánh Tôn, Quận 1, TP. Hồ Chí Minh",
-            description: "Căn hộ dịch vụ hiện đại giữa lòng thành phố, thuận tiện đi lại cho các chuyến công tác hoặc du lịch.",
-            oldPrice: 2200000,
-            newPrice: 1850000,
-        }
-    ];
+interface SearchListProps {
+    keyword: string;
+    lat?: string;
+    lon?: string;
+    bbox?: string;
+}
+
+export default function SearchList(props: SearchListProps) {
+    const {starCount, minPrice, maxPrice, checkFilter} = useSelector((state: ReduxState) => state.searchState);
     
+    const [data, setData] = useState<PageResponse<CardHotelResponse>>();
+    const [page, setPage] = useState<number>(0); 
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    useEffect(() => {
+        const fetch = async () => {
+            setIsLoading(true);
+            try {
+                if(props.lat && props.lon && props.lat.trim().length > 0 && props.lon.trim().length > 0) {
+                    let extent:number[];
+                    if (props.bbox) {
+                        extent = props.bbox.split(",").map(e => Number(e));
+                    } else {
+                        extent = [Number(props.lat), Number(props.lon)];
+                    }
+                    const res = await searchHotels(1, props.keyword, page, extent, starCount, 
+                        minPrice === "" || Number(minPrice) < 0 ?  undefined : Number(minPrice),
+                        maxPrice === "" || Number(maxPrice) < 0 || Number(maxPrice) <= Number(minPrice) ?  undefined : Number(maxPrice));
+                    setData(res);
+                } else {
+                    const res = await searchHotels(0, props.keyword, page, undefined, starCount,
+                        minPrice === "" || Number(minPrice) < 0 ?  undefined : Number(minPrice),
+                        maxPrice === "" || Number(maxPrice) < 0 || Number(maxPrice) <= Number(minPrice) ?  undefined : Number(maxPrice));
+                    setData(res);   
+                }
+            } catch (error) {
+                console.error("Lỗi khi fetch hotels:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetch();
+    }, [props.keyword, props.lat, props.lon, props.bbox, page, checkFilter]); 
+
+    useEffect(() => {
+        setPage(0);
+    }, [props.keyword, props.lat, props.lon, props.bbox]);
+
+    const totalPages = data?.totalPages || 0;
+
+    const renderPageNumbers = () => {
+        const pages = [];
+        for (let i = 0; i < totalPages; i++) {
+            if (i === 0 || i === totalPages - 1 || (i >= page - 1 && i <= page + 1)) {
+                pages.push(
+                    <PaginationItem key={i} className="cursor-pointer">
+                        <PaginationLink
+                            onClick={() => setPage(i)}
+                            isActive={page === i}
+                        >
+                            {i + 1}
+                        </PaginationLink>
+                    </PaginationItem>
+                );
+            } else if (i === page - 2 || i === page + 2) {
+                pages.push(
+                    <PaginationItem key={i}>
+                        <PaginationEllipsis />
+                    </PaginationItem>
+                );
+            }
+        }
+        return pages;
+    };
+
     return (
-        <div className="flex-col">
-            {MOCK_HOTELS.map((hotel, index) => (
-                <div key={index} className="flex-1 py-1">
-                    <HotelCard hotelId={hotel.hotelId} thumbnail={hotel.thumbnail} title={hotel.title}
-                               totalComment={hotel.totalComment} avgRating={hotel.avgRating} address={hotel.address}
-                               description={hotel.description} oldPrice={hotel.oldPrice} newPrice={hotel.newPrice} />
-                </div>
-            ))}
-            <div className="p-5">
-                <Pagination>
-                    <PaginationContent>
-                        <PaginationItem>
-                            <PaginationPrevious href="#" text="Trang trước"/>
-                        </PaginationItem>
-                        <PaginationItem>
-                            <PaginationLink href="#">1</PaginationLink>
-                        </PaginationItem>
-                        <PaginationItem>
-                            <PaginationLink href="#" isActive>
-                                2
-                            </PaginationLink>
-                        </PaginationItem>
-                        <PaginationItem>
-                            <PaginationLink href="#">3</PaginationLink>
-                        </PaginationItem>
-                        <PaginationItem>
-                            <PaginationEllipsis />
-                        </PaginationItem>
-                        <PaginationItem>
-                            <PaginationNext href="#" text="Trang sau"/>
-                        </PaginationItem>
-                    </PaginationContent>
-                </Pagination>
+        <>
+            <SearchOverview keyword={props.keyword} count={data?.totalElements || 0} />
+
+            <div className="flex flex-col min-h-[400px]">
+                {isLoading ? (
+                    <div className="flex-1 flex items-center justify-center py-10 text-gray-500">
+                        Đang tải danh sách khách sạn...
+                    </div>
+                ) : data?.content && data.content.length > 0 ? (
+                    data.content.map((hotel) => (
+                        <div key={hotel.id} className="flex-1 py-1">
+                            <HotelCard
+                                hotelId={hotel.id}
+                                thumbnail={hotel.thumbnail}
+                                title={hotel.name}
+                                totalComment={hotel.totalComment}
+                                avgRating={hotel.avgRating}
+                                address={`${hotel.street}, ${hotel.ward}, ${hotel.province}`}
+                                description={hotel.description}
+                                oldPrice={hotel.minPrice}
+                                newPrice={hotel.minPrice}
+                            />
+                        </div>
+                    ))
+                ) : (
+                    <div className="flex-1 flex items-center justify-center py-10 text-gray-500">
+                        Không tìm thấy khách sạn nào ở khu vực này.
+                    </div>
+                )}
+
+                {totalPages > 1 && (
+                    <div className="p-5">
+                        <Pagination>
+                            <PaginationContent>
+                                <PaginationItem className={page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}>
+                                    <PaginationPrevious
+                                        onClick={() => setPage(prev => Math.max(0, prev - 1))}
+                                        text="Trang trước"
+                                    />
+                                </PaginationItem>
+
+                                {renderPageNumbers()}
+
+                                <PaginationItem className={page === totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}>
+                                    <PaginationNext
+                                        onClick={() => setPage(prev => Math.min(totalPages - 1, prev + 1))}
+                                        text="Trang sau"
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
+                )}
             </div>
-        </div>
-    )
+        </>
+    );
 }

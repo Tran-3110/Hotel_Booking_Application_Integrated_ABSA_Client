@@ -9,5 +9,5 @@ export interface SuggestSearchResponse {
         city: string
         country: string
     }
-    boudingbox: string[]
+    boundingbox: string[]
 }

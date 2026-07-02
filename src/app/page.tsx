@@ -15,6 +15,7 @@ import { ArrowRight, Building2, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {transformTitleToSlug} from "@/common/utils/slug";
 
 export default function Home() {
     const [data, setData] = useState<HomePageStatisticResponse | null>(null)
@@ -33,8 +34,7 @@ export default function Home() {
 
     return (
         <div>
-            <NavBar />
-
+            
             <section className="relative w-full h-screen">
                 <div className="absolute top-0 left-0 inset-0 z-1 bg-black opacity-50"></div>
                 <div className="absolute top-0 left-0 inset-0 z-0">
@@ -153,7 +153,7 @@ export default function Home() {
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-stretch">
                         {data && data.exploreHotels && data.exploreHotels.map(hotel => (
                             <Link
-                                href={`/hotel/${hotel.id}`}
+                                href={`/hotel/${transformTitleToSlug(hotel.name)}.${hotel.id}`}
                                 key={hotel.id}
                                 className="flex flex-col relative w-full pt-0 overflow-hidden cursor-pointer border rounded-xl bg-card text-card-foreground shadow transition-all hover:shadow-lg hover:-translate-y-1"
                             >
