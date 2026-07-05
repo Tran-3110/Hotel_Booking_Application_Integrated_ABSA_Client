@@ -6,6 +6,7 @@ interface SearchSlice {
     minPrice: string | number;
     maxPrice: string | number;
     checkFilter: number;
+    sortType: "PRICE_ASC" | "PRICE_DESC" | "RATING_ASC" | "RATING_DESC" | string;
 }
 
 const initialState: SearchSlice = {
@@ -14,6 +15,7 @@ const initialState: SearchSlice = {
     minPrice: "",
     maxPrice: "",
     checkFilter: 0,
+    sortType: ""
 }
 
 const searchSlice = createSlice({
@@ -32,13 +34,16 @@ const searchSlice = createSlice({
         setMaxPrice: (state, action:PayloadAction<string>) => {
             state.maxPrice = action.payload;
         },
+        setSortType: (state, action:PayloadAction<string>) => {
+            state.sortType = action.payload;
+        },
         changeSearchFilter: (state) => {
             state.checkFilter = state.checkFilter + 1;
         }
     }
 })
 
-export const {setKeyword, setStarCount, setMinPrice, setMaxPrice, changeSearchFilter} = searchSlice.actions;
+export const {setKeyword, setStarCount, setMinPrice, setMaxPrice, setSortType, changeSearchFilter} = searchSlice.actions;
 
 export default searchSlice.reducer;
 

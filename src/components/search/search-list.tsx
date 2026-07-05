@@ -26,8 +26,7 @@ interface SearchListProps {
 }
 
 export default function SearchList(props: SearchListProps) {
-    const {starCount, minPrice, maxPrice, checkFilter} = useSelector((state: ReduxState) => state.searchState);
-    
+    const {starCount, minPrice, maxPrice, checkFilter, sortType} = useSelector((state: ReduxState) => state.searchState);
     const [data, setData] = useState<PageResponse<CardHotelResponse>>();
     const [page, setPage] = useState<number>(0); 
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -45,12 +44,14 @@ export default function SearchList(props: SearchListProps) {
                     }
                     const res = await searchHotels(1, props.keyword, page, extent, starCount, 
                         minPrice === "" || Number(minPrice) < 0 ?  undefined : Number(minPrice),
-                        maxPrice === "" || Number(maxPrice) < 0 || Number(maxPrice) <= Number(minPrice) ?  undefined : Number(maxPrice));
+                        maxPrice === "" || Number(maxPrice) < 0 || Number(maxPrice) <= Number(minPrice) ?  undefined : Number(maxPrice),
+                        sortType);
                     setData(res);
                 } else {
                     const res = await searchHotels(0, props.keyword, page, undefined, starCount,
                         minPrice === "" || Number(minPrice) < 0 ?  undefined : Number(minPrice),
-                        maxPrice === "" || Number(maxPrice) < 0 || Number(maxPrice) <= Number(minPrice) ?  undefined : Number(maxPrice));
+                        maxPrice === "" || Number(maxPrice) < 0 || Number(maxPrice) <= Number(minPrice) ?  undefined : Number(maxPrice),
+                        sortType);
                     setData(res);   
                 }
             } catch (error) {
@@ -60,7 +61,7 @@ export default function SearchList(props: SearchListProps) {
             }
         };
         fetch();
-    }, [props.keyword, props.lat, props.lon, props.bbox, page, checkFilter]); 
+    }, [props.keyword, props.lat, props.lon, props.bbox, page, sortType, checkFilter]); 
 
     useEffect(() => {
         setPage(0);
