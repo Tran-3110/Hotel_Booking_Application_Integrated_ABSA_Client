@@ -1,15 +1,6 @@
 "use client"; 
 
 import HotelCard from "@/components/hotel/hotel-card";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination"
 import SearchOverview from "@/components/search/search-overview";
 import { useEffect, useState } from "react";
 import { searchHotels } from "@/services/search-service";
@@ -17,6 +8,7 @@ import { CardHotelResponse } from "@/common/types/hotel";
 import { PageResponse } from "@/common/types/page";
 import {useSelector} from "react-redux";
 import {ReduxState} from "@/constants/redux-state";
+import PaginationCustom from "@/components/pagination-custom";
 
 interface SearchListProps {
     keyword: string;
@@ -65,34 +57,9 @@ export default function SearchList(props: SearchListProps) {
 
     useEffect(() => {
         setPage(0);
-    }, [props.keyword, props.lat, props.lon, props.bbox]);
+    }, [props.keyword, props.lat, props.lon, props.bbox, sortType, checkFilter]);
 
     const totalPages = data?.totalPages || 0;
-
-    const renderPageNumbers = () => {
-        const pages = [];
-        for (let i = 0; i < totalPages; i++) {
-            if (i === 0 || i === totalPages - 1 || (i >= page - 1 && i <= page + 1)) {
-                pages.push(
-                    <PaginationItem key={i} className="cursor-pointer">
-                        <PaginationLink
-                            onClick={() => setPage(i)}
-                            isActive={page === i}
-                        >
-                            {i + 1}
-                        </PaginationLink>
-                    </PaginationItem>
-                );
-            } else if (i === page - 2 || i === page + 2) {
-                pages.push(
-                    <PaginationItem key={i}>
-                        <PaginationEllipsis />
-                    </PaginationItem>
-                );
-            }
-        }
-        return pages;
-    };
 
     return (
         <>
@@ -127,25 +94,7 @@ export default function SearchList(props: SearchListProps) {
 
                 {totalPages > 1 && (
                     <div className="p-5">
-                        <Pagination>
-                            <PaginationContent>
-                                <PaginationItem className={page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}>
-                                    <PaginationPrevious
-                                        onClick={() => setPage(prev => Math.max(0, prev - 1))}
-                                        text="Trang trước"
-                                    />
-                                </PaginationItem>
-
-                                {renderPageNumbers()}
-
-                                <PaginationItem className={page === totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}>
-                                    <PaginationNext
-                                        onClick={() => setPage(prev => Math.min(totalPages - 1, prev + 1))}
-                                        text="Trang sau"
-                                    />
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
+                        <PaginationCustom page={page} totalPages={totalPages} onPageChange={(currentPage) => setPage(currentPage)} />
                     </div>
                 )}
             </div>
