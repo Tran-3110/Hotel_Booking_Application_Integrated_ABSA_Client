@@ -18,7 +18,7 @@ export interface ImageResponse {
 }
 
 export interface HotelRegulationResponse {
-    id: string;
+    id?: string;
     name: string;
     description: string;
 }
