@@ -17,6 +17,7 @@ export const searchHotels = async (
     minRating?: number,
     minPrice?: number,
     maxPrice?: number,
+    sortType?: string
 ): Promise<PageResponse<CardHotelResponse>> => {
     const response = await apiClient.get(`/search/hotels`, {
         params: {
@@ -28,6 +29,7 @@ export const searchHotels = async (
             minRating: minRating,
             minPrice: minPrice,
             maxPrice: maxPrice,
+            sortType: sortType
         }
     })
     return response.data

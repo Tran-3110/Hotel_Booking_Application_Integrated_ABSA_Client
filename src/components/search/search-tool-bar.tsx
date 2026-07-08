@@ -71,6 +71,7 @@ export default function SearchToolBar({ variant }: { variant?: 'header' | 'landi
                 </div>
                 <Input
                     name="q"
+                    value={searchText}
                     placeholder="Bạn muốn đến đâu?"
                     className={cn(
                         "border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent! flex-1",
@@ -98,10 +99,18 @@ export default function SearchToolBar({ variant }: { variant?: 'header' | 'landi
                         variant === "landing" ? "px-8 h-12 text-base" : "px-6 h-10 text-sm"
                     )}
                     onClick={() => {
-                        const lat = results[0].lat || undefined
-                        const lon = results[0].lon || undefined
-                        const bbox = results[0].boundingbox.join(",") || undefined
-                        router.push(`/search?q=${searchText}&lat=${lat}&lon=${lon}&bbox=${bbox}`);
+                        const params = new URLSearchParams();
+
+                        if (searchText) params.append("q", searchText);
+
+                        if (results[0]) {
+                            if (results[0].lat) params.append("lat", results[0].lat);
+                            if (results[0].lon) params.append("lon", results[0].lon);
+                            if (results[0].boundingbox) {
+                                params.append("bbox", results[0].boundingbox.join(","));
+                            }
+                        }
+                        router.push(`/search?${params.toString()}`);
                     }}
                 >
                     <Search className="mr-1 h-4 w-4" />
@@ -120,6 +129,7 @@ export default function SearchToolBar({ variant }: { variant?: 'header' | 'landi
                             variant === "landing" ? "p-4" : "p-2.5"
                         )} onClick={() => {
                             const bbox = result.boundingbox.join(",");
+                            dispatch(setKeyword(result.display_name || result.name || result.address?.city || "Chưa xác định địa điểm."))
                             router.push(`/search?q=${result.display_name || result.name || result.address?.city || "Chưa xác định địa điểm."}&lat=${result.lat}&lon=${result.lon}&bbox=${bbox}`);
                         }}>
                             <label className="flex items-start gap-2.5 cursor-pointer">
