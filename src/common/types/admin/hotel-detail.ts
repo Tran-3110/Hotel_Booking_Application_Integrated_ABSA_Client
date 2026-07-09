@@ -49,7 +49,6 @@ export interface RoomTypeResponse {
     roomUtilities: RoomUtilityResponse[];
     roomTypeImages: RoomTypeImageResponse[];
     roomDetails: RoomDetailResponse[];
-    depositedPercent: number;
     isActive?: boolean;
 }
 

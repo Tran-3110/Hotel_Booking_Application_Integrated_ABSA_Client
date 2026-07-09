@@ -10,22 +10,12 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import {Users, CreditCard, BedDouble, ScrollText, Info} from "lucide-react"
+import {Users, BedDouble, ScrollText, Info} from "lucide-react"
 import HotelSlider from "@/components/hotel/hotel-slider";
 import IconRoomUtility from "@/components/icon-render/icon-room-utility";
+import {RoomTypeResponse} from "@/common/types/hotel";
 
-interface RoomTypeProps {
-    id: string
-    name: string
-    description: string
-    capacity: number
-    price: number
-    roomUtilities: { name: string, iconCode: string }[]
-    roomTypeImages: string[]
-    depositedPercent: number
-}
-
-export function RoomType({ room }: { room: RoomTypeProps }) {
+export function RoomType({ room }: { room: RoomTypeResponse }) {
     return (
         <Dialog>
             <DialogTrigger asChild>
@@ -66,15 +56,6 @@ export function RoomType({ room }: { room: RoomTypeProps }) {
                             <div>
                                 <p className="text-xs text-gray-500 font-semibold uppercase">Số lượng khách</p>
                                 <p className="text-base font-semibold text-gray-900">{room.capacity} người lớn</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3.5">
-                            <div className="p-3 bg-white rounded-full text-green-700 shadow-sm">
-                                <CreditCard className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-500 font-semibold uppercase">Đặt cọc trước</p>
-                                <p className="text-base font-semibold text-gray-900">{room.depositedPercent * 100}% tổng tiền</p>
                             </div>
                         </div>
                     </div>

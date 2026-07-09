@@ -1,7 +1,7 @@
 'use client';
 
 import React, {useState, useEffect, useRef} from 'react';
-import {MapPin, ShieldCheck, Wifi, CalendarDays, User, Image as ImageIcon, Plus, Trash2, RotateCcw} from 'lucide-react';
+import {MapPin, ShieldCheck, Wifi, CalendarDays, User, Image as ImageIcon, Plus, Trash2} from 'lucide-react';
 import {useDispatch, useSelector} from 'react-redux';
 import MultiUploadBox from "@/components/upload/multi-upload-box";
 import {FilePreview} from "@/common/types/file";

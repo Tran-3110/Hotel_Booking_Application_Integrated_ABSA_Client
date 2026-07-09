@@ -48,7 +48,6 @@ export interface UpdateRoomTypeRequest {
     description: string;       
     price: number;             
     capacity: number;          
-    depositedPercent: number;
     images: string[];
     roomUtilities: string[];
     roomDetails: RoomDetailResponse[]; 

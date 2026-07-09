@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { DoorOpen, Plus, Trash2, ImageIcon, Wifi, Save, RotateCcw, Power, PowerOff } from 'lucide-react';
+import { DoorOpen, Plus, Trash2, ImageIcon, Wifi, Save, Power, PowerOff } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
     updateRoomField,
@@ -17,7 +17,7 @@ import { cloudinary } from "@/services/upload-service";
 import { RoomDetailResponse, RoomUtilityResponse } from "@/common/types/admin/hotel-detail";
 import { hotelAdminService, UpdateRoomTypeRequest } from "@/services/admin/hotel-admin-service";
 
-export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: string, onSuccess: () => void, onClose: () => void }) {
+export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: string, onSuccess?: () => void, onClose: () => void }) {
     const dispatch = useDispatch();
     const { data: formData } = useSelector((state: ReduxState) => state.editHotelState);
     const rooms = formData?.roomTypes || [];
@@ -129,7 +129,7 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
             return;
         }
         dispatch(addRoomType({
-            name: "", description: "", price: 0, capacity: 1, depositedPercent: 0,
+            name: "", description: "", price: 0, capacity: 1,
             roomUtilities: [], roomTypeImages: [], roomDetails: [], isActive: true
         }));
     };
@@ -172,7 +172,6 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                 description: room.description || "",
                 price: room.price || 0,
                 capacity: room.capacity || 1,
-                depositedPercent: room.depositedPercent || 0,
                 images: allImageUrls,
                 roomUtilities: room.roomUtilities?.map((u: RoomUtilityResponse) => u.id) || [],
                 roomDetails: room.roomDetails?.map((d: RoomDetailResponse) => ({
@@ -300,10 +299,6 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                                                         <div>
                                                             <label className="block text-xs font-semibold text-gray-600 mb-1">Sức chứa</label>
                                                             <input type="number" value={room.capacity || 0} onChange={(e) => dispatch(updateRoomField({ roomIndex: index, field: 'capacity', value: Number(e.target.value) }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-1 focus:ring-purple-500 font-medium text-gray-800"/>
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-xs font-semibold text-gray-600 mb-1">% Cọc</label>
-                                                            <input type="number" max="100" min="0" value={room.depositedPercent || 0} onChange={(e) => dispatch(updateRoomField({ roomIndex: index, field: 'depositedPercent', value: Number(e.target.value) }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-1 focus:ring-purple-500 font-medium text-amber-600"/>
                                                         </div>
                                                     </div>
                                                 </div>
