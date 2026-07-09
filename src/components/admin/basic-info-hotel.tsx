@@ -144,6 +144,15 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
     };
 
     const handleSave = async () => {
+        if (!formData.name || formData.name.trim() === "") {
+            window.alert("Tên khách sạn không được để trống!");
+            return;
+        }
+        if (formData.hotelRegulations?.some((d) => d.name.trim() === "")) {
+            window.alert("Có tên nội quy đang bị bỏ trống. Vui lòng kiểm tra lại!");
+            return;
+        }
+        
         dispatch(setSavingStatus(true));
         try {
             const existingUrls = hotelImages.filter(item => !item.file).map(item => item.url);

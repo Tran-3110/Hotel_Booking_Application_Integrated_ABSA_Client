@@ -36,7 +36,7 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                 const data = await hotelAdminService.getRoomUtilities();
                 setAvailableRoomUtilities(data);
             } catch (error) {
-                console.error("Lỗi lấy danh sách tiện ích phòng:", error);
+                window.alert("Lỗi lấy danh sách tiện ích phòng!");
             }
         };
         fetchUtilities();
@@ -145,6 +145,14 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
             window.alert("Có mã phòng đang bị bỏ trống. Vui lòng kiểm tra lại!");
             return;
         }
+        if (room.price < 0) {
+            window.alert("Giá tiền không được nhỏ hơn 0!");
+            return;
+        }
+        if (room.capacity < 1) {
+            window.alert("Số lượng khách trong phòng không được nhỏ hơn 1!");
+            return;
+        }
 
         setSavingIndex(index);
         try {
@@ -187,7 +195,6 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
             window.alert(`Lưu hạng phòng "${room.name}" thành công!`);
             if(onSuccess) onSuccess();
         } catch (error) {
-            console.error("Lỗi khi lưu phòng:", error);
             window.alert("Cập nhật phòng không thành công. Vui lòng thử lại!");
         } finally {
             setSavingIndex(null);
@@ -215,7 +222,6 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                     }
                 }
             } catch (error) {
-                console.error("Lỗi khi thay đổi trạng thái phòng:", error);
                 window.alert("Đã có lỗi xảy ra!");
             } finally {
                 setSavingIndex(null);

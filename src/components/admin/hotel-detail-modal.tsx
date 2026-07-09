@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Building2, Info, BedDouble, Eye } from 'lucide-react';
+import {X, Building2, Info, BedDouble, Eye, User} from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { hotelAdminService } from '@/services/admin/hotel-admin-service';
 import { setInitialData, resetSlice } from '@/store/slices/editHotelSlice';
@@ -9,6 +9,7 @@ import { setInitialData, resetSlice } from '@/store/slices/editHotelSlice';
 import BasicInfoTab from './basic-info-hotel';
 import {ReduxState} from "@/constants/redux-state";
 import RoomsTab from "@/components/admin/room-type";
+import OwnerTab from "@/components/admin/hotel-owner";
 
 interface HotelDetailModalProps {
     isOpen: boolean;
@@ -20,7 +21,7 @@ interface HotelDetailModalProps {
 export default function HotelDetailModal({ isOpen, onClose, hotelId, onSuccess }: HotelDetailModalProps) {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState<boolean>(false);
-    const [activeTab, setActiveTab] = useState<'basic' | 'rooms'>('basic');
+    const [activeTab, setActiveTab] = useState<'basic' | 'rooms' | 'owner'>('basic');
 
     const roomCount = useSelector((state: ReduxState) => state.editHotelState.data?.roomTypes?.length || 0);
     const headerInfo = useSelector((state: ReduxState) => state.editHotelState.data ? { id: state.editHotelState.data.id, viewCount: state.editHotelState.data.viewCount } : null);
@@ -33,7 +34,7 @@ export default function HotelDetailModal({ isOpen, onClose, hotelId, onSuccess }
                     const data = await hotelAdminService.getHotelDetail(hotelId);
                     dispatch(setInitialData(data));
                 } catch (error) {
-                    console.error("Lỗi khi tải chi tiết:", error);
+                    window.alert("Lỗi khi tải chi tiết!");
                 } finally {
                     setLoading(false);
                 }
@@ -92,7 +93,17 @@ export default function HotelDetailModal({ isOpen, onClose, hotelId, onSuccess }
                                 activeTab === 'rooms' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'
                             }`}
                         >
-                            <div className="flex items-center gap-2"><BedDouble className="w-4 h-4"/> Hạng phòng ({roomCount})</div>
+                            <div className="flex items-center gap-2"><BedDouble className="w-4 h-4"/> Hạng phòng
+                                ({roomCount})
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('owner')}
+                            className={`py-3 px-4 font-medium text-sm border-b-2 transition-colors ${
+                                activeTab === 'owner' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2"><User className="w-4 h-4"/>Chủ khách sạn</div>
                         </button>
                     </div>
                 )}
@@ -107,6 +118,7 @@ export default function HotelDetailModal({ isOpen, onClose, hotelId, onSuccess }
                         <>
                             {activeTab === 'basic' && <BasicInfoTab hotelId={hotelId!} onClose={onClose} onSuccess={onSuccess} />}
                             {activeTab === 'rooms' && <RoomsTab hotelId={hotelId!} onClose={onClose} onSuccess={onSuccess} />}
+                            {activeTab === 'owner' && <OwnerTab hotelId={hotelId!} onClose={onClose} />}
                         </>
                     )}
                 </div>
