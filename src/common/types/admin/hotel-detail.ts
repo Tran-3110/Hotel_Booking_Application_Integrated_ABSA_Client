@@ -41,7 +41,7 @@ export interface RoomDetailResponse {
 }
 
 export interface RoomTypeResponse {
-    id: string;
+    id?: string;
     name: string;
     description: string;
     capacity: number;
@@ -50,6 +50,7 @@ export interface RoomTypeResponse {
     roomTypeImages: RoomTypeImageResponse[];
     roomDetails: RoomDetailResponse[];
     depositedPercent: number;
+    isActive?: boolean;
 }
 
 export interface AddressResponse {
@@ -88,4 +89,14 @@ export interface AdminHotelDetailResponse {
     hotelRegulations: HotelRegulationResponse[];
     createdAt: string;
     updatedAt: string;
+}
+
+export interface UpdateActiveHotelResponse {
+    success: boolean;
+    active: boolean;
+}
+
+export interface UpdateActiveRoomTypeResponse {
+    success: boolean;
+    active: boolean;
 }
