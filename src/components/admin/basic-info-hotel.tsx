@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { MapPin, ShieldCheck, Wifi, CalendarDays, User, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, {useState, useEffect, useRef} from 'react';
+import {MapPin, ShieldCheck, Wifi, CalendarDays, User, Image as ImageIcon, Plus, Trash2} from 'lucide-react';
+import {useDispatch, useSelector} from 'react-redux';
 import MultiUploadBox from "@/components/upload/multi-upload-box";
-import { FilePreview } from "@/common/types/file";
+import {FilePreview} from "@/common/types/file";
 import {
     setSavingStatus,
     updateAddressField,
@@ -12,13 +12,17 @@ import {
     resetChanges,
     setHotelUtilitiesFormData, setHotelRegulation, setInitialData
 } from "@/store/slices/editHotelSlice";
-import { ReduxState } from "@/constants/redux-state";
-import { HotelUtilityResponse } from "@/common/types/admin/hotel-detail";
+import {ReduxState} from "@/constants/redux-state";
+import {HotelUtilityResponse} from "@/common/types/admin/hotel-detail";
 import {hotelAdminService, UpdateHotelInfoRequest} from "@/services/admin/hotel-admin-service";
 import Image from "next/image";
 import {cloudinary} from "@/services/upload-service";
 
-export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId: string, onClose: () => void, onSuccess?: () => void }) {
+export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
+    hotelId: string,
+    onClose: () => void,
+    onSuccess?: () => void
+}) {
     const dispatch = useDispatch();
 
     const {
@@ -60,7 +64,7 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                 setThumbnailId(mappedImages[0]?.id || null);
             }
         }
-    }, [formData, reset]);
+    }, [reset]);
 
     useEffect(() => {
         const fetchHotelUtilities = async () => {
@@ -118,18 +122,18 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
 
     const handleAddRegulation = () => {
         const currentRegulations = formData.hotelRegulations || [];
-        if(currentRegulations.some(r => r.name === "")) {
+        if (currentRegulations.some(r => !r.name || r.name.trim() === "")) {
             window.alert("Vui lòng điền đầy đủ thông tin quy định hiện có!")
-            return;   
+            return;
         }
-        
-        const newRegulation = { name: "", description: "" };
+
+        const newRegulation = {name: "", description: ""};
         dispatch(setHotelRegulation([...currentRegulations, newRegulation]));
     };
 
     const handleUpdateRegulation = (index: number, field: 'name' | 'description', value: string) => {
         const currentRegulations = [...(formData.hotelRegulations || [])];
-        currentRegulations[index] = { ...currentRegulations[index], [field]: value };
+        currentRegulations[index] = {...currentRegulations[index], [field]: value};
         dispatch(setHotelRegulation(currentRegulations));
     };
 
@@ -145,12 +149,12 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
             const existingUrls = hotelImages.filter(item => !item.file).map(item => item.url);
             const newFilesToUpload = hotelImages.filter(item => item.file);
 
-            let newUploadedImages: any[] = [];
+            let newUploadedImages: {id: string, url: string}[] = [];
             if (newFilesToUpload.length > 0) {
                 const sigData = await cloudinary.getSignature(`homebooking-hotel`);
                 const uploadPromises = newFilesToUpload.map(async (item) => {
                     const res = await cloudinary.uploadSingleImage(item.file!, sigData);
-                    return { id: item.id, url: res.secure_url };
+                    return {id: item.id, url: res.secure_url};
                 });
                 newUploadedImages = await Promise.all(uploadPromises);
             }
@@ -200,6 +204,18 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
             dispatch(setSavingStatus(false));
         }
     };
+    
+    const handleChangeActive = async (active: boolean) => {
+        const res = await hotelAdminService.updateActive({
+            id: hotelId, active: active
+        })
+        if(res.success) {
+            dispatch(updateBasicField({field: "isActive", value: res.active}))
+            if (onSuccess) onSuccess();
+        } else {
+            window.alert("Đã có lỗi xảy ra khi thay đổi trạng thái khách sạn!")
+        }
+    }
 
     return (
         <div className="flex flex-col h-full">
@@ -210,16 +226,29 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                         <h3 className="font-semibold text-gray-800 border-b pb-2 mb-4">Thông tin chung</h3>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Tên khách sạn</label>
-                            <input type="text" value={formData.name || ""} onChange={(e) => dispatch(updateBasicField({ field: 'name', value: e.target.value }))} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-purple-500" />
+                            <input type="text" value={formData.name || ""}
+                                   onChange={(e) => dispatch(updateBasicField({field: 'name', value: e.target.value}))}
+                                   className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-purple-500"/>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Hotline</label>
-                                <input type="text" value={formData.hotline || ""} onChange={(e) => dispatch(updateBasicField({ field: 'hotline', value: e.target.value }))} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-purple-500" />
+                                <input type="text" value={formData.hotline || ""}
+                                       onChange={(e) => dispatch(updateBasicField({
+                                           field: 'hotline',
+                                           value: e.target.value
+                                       }))}
+                                       className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-purple-500"/>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái (Status)</label>
-                                <select value={formData.status || "AVAILABLE"} onChange={(e) => dispatch(updateBasicField({ field: 'status', value: e.target.value }))} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-purple-500">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái
+                                    (Status)</label>
+                                <select value={formData.status || "AVAILABLE"}
+                                        onChange={(e) => dispatch(updateBasicField({
+                                            field: 'status',
+                                            value: e.target.value
+                                        }))}
+                                        className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-purple-500">
                                     <option value="AVAILABLE">Available</option>
                                     <option value="FULL">Full</option>
                                     <option value="UNAVAILABLE">Unavailable</option>
@@ -228,11 +257,18 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
-                            <textarea rows={4} value={formData.description || ""} onChange={(e) => dispatch(updateBasicField({ field: 'description', value: e.target.value }))} className="w-full px-3 py-2 border rounded-lg outline-none text-sm focus:ring-1 focus:ring-purple-500" />
+                            <textarea rows={4} value={formData.description || ""}
+                                      onChange={(e) => dispatch(updateBasicField({
+                                          field: 'description',
+                                          value: e.target.value
+                                      }))}
+                                      className="w-full px-3 py-2 border rounded-lg outline-none text-sm focus:ring-1 focus:ring-purple-500"/>
                         </div>
                         <div className="flex gap-4 text-xs text-gray-400 mt-2">
-                            <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3"/> Tạo: {formData.createdAt ? new Date(formData.createdAt).toLocaleDateString() : ""}</span>
-                            <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3"/> Cập nhật: {formData.updatedAt ? new Date(formData.updatedAt).toLocaleDateString() : ""}</span>
+                            <span className="flex items-center gap-1"><CalendarDays
+                                className="w-3 h-3"/> Tạo: {formData.createdAt ? new Date(formData.createdAt).toLocaleDateString() : ""}</span>
+                            <span className="flex items-center gap-1"><CalendarDays
+                                className="w-3 h-3"/> Cập nhật: {formData.updatedAt ? new Date(formData.updatedAt).toLocaleDateString() : ""}</span>
                         </div>
                     </div>
 
@@ -244,31 +280,43 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                             </h3>
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Đường / Số nhà</label>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Đường / Số
+                                        nhà</label>
                                     <input
                                         type="text"
                                         value={formData.address?.street || ''}
-                                        onChange={(e) => dispatch(updateAddressField({ field: 'street', value: e.target.value }))}
+                                        onChange={(e) => dispatch(updateAddressField({
+                                            field: 'street',
+                                            value: e.target.value
+                                        }))}
                                         className="w-full px-3 py-1.5 border rounded-lg outline-none text-sm focus:ring-1 focus:ring-purple-500"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Phường / Xã</label>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Phường /
+                                            Xã</label>
                                         <input
                                             type="text"
                                             value={formData.address?.ward || ''}
-                                            onChange={(e) => dispatch(updateAddressField({ field: 'ward', value: e.target.value }))}
+                                            onChange={(e) => dispatch(updateAddressField({
+                                                field: 'ward',
+                                                value: e.target.value
+                                            }))}
                                             className="w-full px-3 py-1.5 border rounded-lg outline-none text-sm focus:ring-1 focus:ring-purple-500"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Tỉnh / Thành phố</label>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Tỉnh / Thành
+                                            phố</label>
                                         <input
                                             type="text"
                                             value={formData.address?.province || ''}
-                                            onChange={(e) => dispatch(updateAddressField({ field: 'province', value: e.target.value }))}
+                                            onChange={(e) => dispatch(updateAddressField({
+                                                field: 'province',
+                                                value: e.target.value
+                                            }))}
                                             className="w-full px-3 py-1.5 border rounded-lg outline-none text-sm focus:ring-1 focus:ring-purple-500"
                                         />
                                     </div>
@@ -276,22 +324,30 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Vĩ độ (Latitude)</label>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Vĩ độ
+                                            (Latitude)</label>
                                         <input
                                             type="number"
                                             step="any"
                                             value={formData.address?.latitude || 0}
-                                            onChange={(e) => dispatch(updateAddressField({ field: 'latitude', value: Number(e.target.value) }))}
+                                            onChange={(e) => dispatch(updateAddressField({
+                                                field: 'latitude',
+                                                value: Number(e.target.value)
+                                            }))}
                                             className="w-full px-3 py-1.5 border rounded-lg outline-none text-sm focus:ring-1 focus:ring-purple-500"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Kinh độ (Longitude)</label>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Kinh độ
+                                            (Longitude)</label>
                                         <input
                                             type="number"
                                             step="any"
                                             value={formData.address?.longitude || 0}
-                                            onChange={(e) => dispatch(updateAddressField({ field: 'longitude', value: Number(e.target.value) }))}
+                                            onChange={(e) => dispatch(updateAddressField({
+                                                field: 'longitude',
+                                                value: Number(e.target.value)
+                                            }))}
                                             className="w-full px-3 py-1.5 border rounded-lg outline-none text-sm focus:ring-1 focus:ring-purple-500"
                                         />
                                     </div>
@@ -300,8 +356,10 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                         </div>
 
                         {/* Phần Owner */}
-                        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-start gap-4">
-                            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
+                        <div
+                            className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-start gap-4">
+                            <div
+                                className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
                                 {formData.owner?.avatarUrl ? (
                                     <Image
                                         fill
@@ -310,7 +368,7 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <User className="text-gray-400" />
+                                    <User className="text-gray-400"/>
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -331,27 +389,37 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                 {/* Tiện ích & Nội quy */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                     {/* Dropdown Tiện ích */}
-                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative h-full flex flex-col" ref={utilityDropdownRef}>
-                        <h4 className="font-medium text-sm flex items-center gap-2 mb-3 border-b pb-2"><Wifi className="w-4 h-4 text-emerald-500"/> Tiện ích khách sạn</h4>
+                    <div
+                        className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative h-full flex flex-col"
+                        ref={utilityDropdownRef}>
+                        <h4 className="font-medium text-sm flex items-center gap-2 mb-3 border-b pb-2"><Wifi
+                            className="w-4 h-4 text-emerald-500"/> Tiện ích khách sạn</h4>
 
                         <div
                             onClick={() => setIsUtilityDropdownOpen(!isUtilityDropdownOpen)}
                             className={`min-h-[50px] w-full bg-gray-50 rounded-xl p-3 flex flex-wrap gap-2 cursor-pointer border-2 transition-all flex-1 ${isUtilityDropdownOpen ? "border-emerald-200 bg-white shadow-sm" : "border-transparent"}`}
                         >
                             {(!formData.hotelUtilities || formData.hotelUtilities.length === 0) && (
-                                <div className="flex items-center px-1 text-gray-400 text-sm italic">Nhấp để chọn tiện ích...</div>
+                                <div className="flex items-center px-1 text-gray-400 text-sm italic">Nhấp để chọn tiện
+                                    ích...</div>
                             )}
 
                             {formData.hotelUtilities?.map(u => (
-                                <span key={u.id} className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-sm">
+                                <span key={u.id}
+                                      className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-sm">
                                     {u.name}
-                                    <button onClick={(e) => { e.stopPropagation(); toggleUtility(u); }} className="hover:bg-emerald-200 hover:text-emerald-900 rounded-full w-4 h-4 flex items-center justify-center transition-colors">×</button>
+                                    <button onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleUtility(u);
+                                    }}
+                                            className="hover:bg-emerald-200 hover:text-emerald-900 rounded-full w-4 h-4 flex items-center justify-center transition-colors">×</button>
                                 </span>
                             ))}
                         </div>
 
                         {isUtilityDropdownOpen && (
-                            <div className="absolute z-20 w-full left-0 mt-2 top-full bg-white border border-gray-100 shadow-xl rounded-xl p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+                            <div
+                                className="absolute z-20 w-full left-0 mt-2 top-full bg-white border border-gray-100 shadow-xl rounded-xl p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto">
                                 {hotelUtilities.map(utility => {
                                     const isSelected = formData.hotelUtilities?.some(u => u.id === utility.id);
                                     return (
@@ -366,7 +434,8 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                                     );
                                 })}
                                 {hotelUtilities.length === 0 && (
-                                    <div className="col-span-full text-center text-sm text-gray-400 py-2">Đang tải dữ liệu...</div>
+                                    <div className="col-span-full text-center text-sm text-gray-400 py-2">Đang tải dữ
+                                        liệu...</div>
                                 )}
                             </div>
                         )}
@@ -383,13 +452,14 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                                 className="w-6 h-6 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center hover:bg-amber-100 transition-colors"
                                 title="Thêm nội quy"
                             >
-                                <Plus className="w-4 h-4" />
+                                <Plus className="w-4 h-4"/>
                             </button>
                         </div>
 
                         <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] pr-1">
                             {formData.hotelRegulations?.map((r, index) => (
-                                <div key={r.id || index} className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg group">
+                                <div key={r.id || index}
+                                     className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg group">
                                     <div className="flex-1 space-y-2">
                                         <input
                                             type="text"
@@ -411,12 +481,13 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                                         className="text-gray-400 hover:text-red-500 p-1 transition-colors mt-1"
                                         title="Xóa nội quy"
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        <Trash2 className="w-4 h-4"/>
                                     </button>
                                 </div>
                             ))}
                             {(!formData.hotelRegulations || formData.hotelRegulations.length === 0) && (
-                                <div className="text-xs text-gray-400 text-center py-6 italic border-2 border-dashed border-gray-100 rounded-lg">
+                                <div
+                                    className="text-xs text-gray-400 text-center py-6 italic border-2 border-dashed border-gray-100 rounded-lg">
                                     Chưa có nội quy nào. Bấm nút + ở góc để thêm.
                                 </div>
                             )}
@@ -446,7 +517,11 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                     <input
                         type="checkbox"
                         checked={formData.isActive || false}
-                        onChange={(e) => dispatch(updateBasicField({ field: 'isActive', value: e.target.checked }))}
+                        onChange={(e) => {
+                            if (confirm("Xác nhận thay đổi trạng thái hoạt động của khách sạn?")) {
+                                handleChangeActive(e.target.checked);
+                            }
+                        }}
                         className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
                     />
                     <span className="text-sm font-medium text-gray-700">Trạng thái Active</span>
@@ -456,7 +531,7 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                     <button
                         type="button"
                         onClick={() => {
-                            if(window.confirm("Bạn có chắc chắn muốn hủy mọi thay đổi và khôi phục dữ liệu gốc?")) {
+                            if (window.confirm("Bạn có chắc chắn muốn hủy mọi thay đổi và khôi phục dữ liệu gốc?")) {
                                 dispatch(resetChanges());
                                 setReset(prev => prev + 1);
                             }
@@ -465,8 +540,11 @@ export default function BasicInfoTab({ hotelId, onClose, onSuccess }: { hotelId:
                     >
                         Reset dữ liệu
                     </button>
-                    <button onClick={onClose} className="px-5 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Hủy</button>
-                    <button onClick={handleSave} disabled={isSaving} className="px-5 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center gap-2 shadow-sm transition-colors disabled:opacity-50">
+                    <button onClick={onClose}
+                            className="px-5 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Hủy
+                    </button>
+                    <button onClick={handleSave} disabled={isSaving}
+                            className="px-5 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center gap-2 shadow-sm transition-colors disabled:opacity-50">
                         {isSaving ? "Đang lưu..." : "Lưu"}
                     </button>
                 </div>

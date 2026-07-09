@@ -34,7 +34,6 @@ export interface RoomTypeResponse {
     price: number;
     roomUtilities: RoomUtilityResponse[]; 
     roomTypeImages: string[];
-    depositedPercent: number;
 }
 
 export interface HotelResponse {

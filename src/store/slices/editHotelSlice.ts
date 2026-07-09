@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
     AdminHotelDetailResponse,
     HotelRegulationResponse,
-    HotelUtilityResponse
+    HotelUtilityResponse, RoomTypeResponse
 } from "@/common/types/admin/hotel-detail";
 
 interface EditHotelState {
@@ -56,6 +56,23 @@ const editHotelSlice = createSlice({
                 state.data.hotelRegulations = action.payload;
             }
         },
+        addRoomType: (state, action: PayloadAction<RoomTypeResponse>) => {
+            if (state.data) {
+                if (!state.data.roomTypes) state.data.roomTypes = [];
+                state.data.roomTypes.push(action.payload);
+            }
+        },
+        updateRoomType: (state, action: PayloadAction<{index: number, data: RoomTypeResponse}>) => {
+            if(state.data) {
+                if(!state.data.roomTypes) state.data.roomTypes = [];
+                state.data.roomTypes[action.payload.index] = action.payload.data;
+            }
+        },
+        removeRoomType: (state, action: PayloadAction<number>) => {
+            if (state.data && state.data.roomTypes) {
+                state.data.roomTypes.splice(action.payload, 1);
+            }
+        },
         setSavingStatus: (state, action: PayloadAction<boolean>) => {
             state.isSaving = action.payload;
         },
@@ -71,9 +88,12 @@ export const {
     updateBasicField,
     updateAddressField,
     updateRoomField,
+    updateRoomType,
     setSavingStatus,
     setHotelUtilitiesFormData,
     setHotelRegulation,
+    addRoomType,
+    removeRoomType,
     resetChanges,
     resetSlice
 } = editHotelSlice.actions;

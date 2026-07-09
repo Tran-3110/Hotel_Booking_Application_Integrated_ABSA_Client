@@ -6,10 +6,10 @@ import Image from "next/image";
 
 interface MultiUploadBoxProps {
     previews: FilePreview[];
-    thumbnailId: string | null;
+    thumbnailId?: string | null;
     onFilesAdded: (files: File[]) => void;
     onRemoveFile: (id: string) => void;
-    onSetThumbnail: (id: string) => void;
+    onSetThumbnail?: (id: string) => void;
 }
 
 export default function MultiUploadBox({
@@ -82,7 +82,9 @@ export default function MultiUploadBox({
                             return (
                                 <div
                                     key={item.id}
-                                    onClick={() => onSetThumbnail(item.id)}
+                                    onClick={() => {
+                                        if(onSetThumbnail) onSetThumbnail(item.id);
+                                    }}
                                     className={`group relative aspect-square rounded-2xl overflow-hidden cursor-pointer transition-all border-4 
                                     ${isThumbnail ? "border-violet-500 shadow-lg scale-[1.02]" : "border-transparent hover:border-violet-200"}`}
                                 >
@@ -91,6 +93,7 @@ export default function MultiUploadBox({
                                         <Image
                                             src={item.url}
                                             alt="preview"
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                             fill
                                             className="object-cover"
                                         />

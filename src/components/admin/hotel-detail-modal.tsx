@@ -106,7 +106,7 @@ export default function HotelDetailModal({ isOpen, onClose, hotelId, onSuccess }
                     ) : (
                         <>
                             {activeTab === 'basic' && <BasicInfoTab hotelId={hotelId!} onClose={onClose} onSuccess={onSuccess} />}
-                            {activeTab === 'rooms' && <RoomsTab hotelId={hotelId!} onClose={onClose} />}
+                            {activeTab === 'rooms' && <RoomsTab hotelId={hotelId!} onClose={onClose} onSuccess={onSuccess} />}
                         </>
                     )}
                 </div>

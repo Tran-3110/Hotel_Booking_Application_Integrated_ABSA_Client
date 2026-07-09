@@ -120,7 +120,7 @@ export default async function HotelDetail({params} : {params: Promise<{slug: str
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Loại phòng</TableHead>
-                                    <TableHead>Thanh toán trước</TableHead>
+                                    <TableHead>Giá phòng (VND)</TableHead>
                                     <TableHead>Số lượng khách</TableHead>
                                     <TableHead>Khám phá</TableHead>
                                 </TableRow>
@@ -129,7 +129,7 @@ export default async function HotelDetail({params} : {params: Promise<{slug: str
                                 {hotel.roomTypes.map((r, index) => (
                                     <TableRow key={index}>
                                         <TableCell className="font-medium">{r.name}</TableCell>
-                                        <TableCell>{r.depositedPercent * 100} %</TableCell>
+                                        <TableCell>{r.price.toLocaleString("vi-VN")}₫/đêm</TableCell>
                                         <TableCell>{r.capacity}</TableCell>
                                         <TableCell><RoomType key={index} room={r}/></TableCell>
                                     </TableRow>
