@@ -4,7 +4,7 @@ import {GetAdminSnapshotHotelResponse} from "@/common/types/admin/snapshot-hotel
 import {
     AdminHotelDetailResponse,
     HotelRegulationResponse,
-    HotelUtilityResponse,
+    HotelUtilityResponse, OwnerResponse,
     RoomDetailResponse,
     RoomTypeResponse,
     RoomUtilityResponse,
@@ -53,12 +53,23 @@ export interface UpdateRoomTypeRequest {
     roomDetails: RoomDetailResponse[]; 
 }
 
+export interface AddHotelRequest {
+    name: string;
+    description: string;
+}
+
 export const hotelAdminService = {
-    getHotelList: async (page: number, size: number): Promise<PageResponse<GetAdminSnapshotHotelResponse>> => {
+    createHotel: async (req: AddHotelRequest): Promise<boolean> => {
+        const res = await apiClient.post(`/admin/hotels/create`, req);
+        return res.data
+    },
+    getHotelList: async (page: number, size: number, sort: string, keyword?: string): Promise<PageResponse<GetAdminSnapshotHotelResponse>> => {
         const res = await apiClient.get(`/admin/hotels/get`, {
             params: {
                 page: page,
                 size: size,
+                sort: sort,
+                keyword: keyword?.trim()
             }
         })
         return res.data
@@ -89,6 +100,10 @@ export const hotelAdminService = {
     },
     updateActiveRoomType: async (req: UpdateActiveRoomTypeRequest): Promise<UpdateActiveRoomTypeResponse> => {
         const res = await apiClient.patch(`/admin/hotels/active-room-type`, req)
+        return res.data
+    },
+    changeHotelOwner: async (req: {hotelId: string, username: string}): Promise<OwnerResponse> => {
+        const res = await apiClient.patch(`/admin/hotels/owner`, req)
         return res.data
     }
 }
