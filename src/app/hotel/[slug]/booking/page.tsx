@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import {useEffect, useMemo, useState} from "react"
-import {notFound, useParams, useSearchParams} from "next/navigation"
-import {useDispatch, useSelector} from "react-redux"
+import { useEffect, useMemo, useState } from "react"
+import { notFound, useParams, useSearchParams } from "next/navigation"
+import { useDispatch, useSelector } from "react-redux"
 import {
     Star,
     XCircle,
@@ -17,13 +17,14 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+// import { Badge } from "@/components/ui/badge"
 import CheckRoomBox from "@/components/hotel/check-room-box"
-import {ReduxState} from "@/constants/redux-state";
-import {RoomTypeValidResponse} from "@/common/types/room";
-import {bookingService} from "@/services/booking-service";
-import {hotelService} from "@/services/hotel-service";
-import {setDataBooking} from "@/store/slices/bookingSlice";
+import { ReduxState } from "@/constants/redux-state";
+// import { RoomTypeValidResponse } from "@/common/types/room";
+import { getRoomDetailsValid } from "@/services/booking-service";
+import { hotelService } from "@/services/hotel-service";
+import { setDataBooking } from "@/store/slices/bookingSlice";
+import { RoomDetailValidResponse } from "@/common/types/order"
 
 export default function CheckAvailabilityCard() {
     const hotelData = useSelector((state: ReduxState) => state.bookingState)
@@ -32,13 +33,12 @@ export default function CheckAvailabilityCard() {
     const slug = params.slug as string;
     const hotelId = slug.slice(slug.lastIndexOf(".") + 1);
 
-    const [validRooms, setValidRooms] = useState<RoomTypeValidResponse[]>([])
+    const [validRooms, setValidRooms] = useState<RoomDetailValidResponse[]>([])
     const [loading, setLoading] = useState(false)
 
     const [selectedRooms, setSelectedRooms] = useState<{
         id: string;
         price: number;
-        depositedPercent: number;
     }[]>([])
 
     const searchParams = useSearchParams()
@@ -50,7 +50,7 @@ export default function CheckAvailabilityCard() {
         setSelectedRooms([])
 
         try {
-            const res = await bookingService.getRoomDetailsValid(hotelId, inDate, outDate)
+            const res = await getRoomDetailsValid(hotelId, inDate, outDate)
             setValidRooms(res)
         } catch (error) {
             console.error("Lỗi khi kiểm tra phòng trống:", error)
@@ -58,10 +58,10 @@ export default function CheckAvailabilityCard() {
             setLoading(false)
         }
     }
-    const fetchHotelData = async ()  => {
+    const fetchHotelData = async () => {
         try {
             const res = await hotelService.getSnapshotById(hotelId);
-            if(res) {
+            if (res) {
                 dispatch(setDataBooking({
                     hotelId: res.id,
                     title: res.name,
@@ -77,14 +77,14 @@ export default function CheckAvailabilityCard() {
     }
 
     useEffect(() => {
-        if(hotelData.hotelId === "") fetchHotelData();
-        
+        if (hotelData.hotelId === "") fetchHotelData();
+
         if (checkIn && checkOut) {
             handleCheckAvailability(checkIn, checkOut)
         }
     }, [checkIn, checkOut])
 
-    const handleToggleSelectRoom = (roomId: string, isValid: boolean, price: number, percent: number) => {
+    const handleToggleSelectRoom = (roomId: string, isValid: boolean, price: number) => {
         if (!isValid) return
 
         setSelectedRooms((prev) => {
@@ -92,15 +92,15 @@ export default function CheckAvailabilityCard() {
             if (isExisted) {
                 return prev.filter(room => room.id !== roomId)
             } else {
-                return [...prev, { id: roomId, price, depositedPercent: percent }]
+                return [...prev, { id: roomId, price }]
             }
         })
     }
 
     const totalDepositAmount = useMemo(() => {
         return selectedRooms.reduce((sum, room) => {
-            const rate = room.depositedPercent > 1 ? room.depositedPercent / 100 : room.depositedPercent
-            return sum + (room.price * rate)
+            // const rate = room.depositedPercent > 1 ? room.depositedPercent / 100 : room.depositedPercent
+            return sum + (room.price)
         }, 0)
     }, [selectedRooms])
 
@@ -127,7 +127,7 @@ export default function CheckAvailabilityCard() {
                     <div className="flex items-center gap-2">
                         {hotelData?.viewCount != null && (
                             <span className="text-xs text-gray-400 font-medium">
-            | {hotelData.viewCount.toLocaleString('vi-VN')} lượt xem</span>
+                                | {hotelData.viewCount.toLocaleString('vi-VN')} lượt xem</span>
                         )}
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
@@ -140,7 +140,7 @@ export default function CheckAvailabilityCard() {
                     </div>
                     <p className="text-sm text-gray-500 flex items-center gap-1.5">
                         <span className="inline-block p-1 bg-red-50 text-red-500 rounded-md"><MapPin
-                            className="text-red-700"/></span>
+                            className="text-red-700" /></span>
                         {hotelData?.address || "Not Found"}
                     </p>
                 </div>
@@ -199,8 +199,7 @@ export default function CheckAvailabilityCard() {
 
                     <div className="grid grid-cols-1 gap-5">
                         {validRooms?.map((roomType) => {
-                            const displayPercent = roomType.depositedPercent > 1 ? roomType.depositedPercent : roomType.depositedPercent * 100
-                            const calculatedDepositPerRoom = roomType.price * (displayPercent / 100)
+                            const calculatedDepositPerRoom = roomType.price
 
                             return (
                                 <div key={roomType.roomTypeId} className="bg-white rounded-2xl border border-gray-200/70 shadow-sm hover:shadow-md transition-all overflow-hidden grid grid-cols-1 lg:grid-cols-4">
@@ -217,9 +216,9 @@ export default function CheckAvailabilityCard() {
                                             </div>
                                             <div className="flex justify-between items-center text-xs">
                                                 <span className="text-gray-400 flex items-center gap-1"><Percent className="w-3.5 h-3.5 text-gray-400" /> Cọc trước:</span>
-                                                <Badge variant="secondary" className="bg-orange-50 text-orange-700 font-bold border-none text-[10px] px-1.5 py-0">
+                                                {/* <Badge variant="secondary" className="bg-orange-50 text-orange-700 font-bold border-none text-[10px] px-1.5 py-0">
                                                     {displayPercent}%
-                                                </Badge>
+                                                </Badge> */}
                                             </div>
                                             <div className="pt-1.5 border-t border-dashed border-gray-200 flex justify-between items-center text-xs">
                                                 <span className="font-semibold text-gray-900">Cọc / phòng:</span>
@@ -239,7 +238,7 @@ export default function CheckAvailabilityCard() {
                                                     <button
                                                         key={room.id}
                                                         disabled={!room.valid}
-                                                        onClick={() => handleToggleSelectRoom(room.id, room.valid, roomType.price, roomType.depositedPercent)}
+                                                        onClick={() => handleToggleSelectRoom(room.id, room.valid, roomType.price)}
                                                         className={cn(
                                                             "group flex items-center justify-between p-3 rounded-xl border text-xs font-semibold transition-all relative select-none text-left",
                                                             room.valid
@@ -257,7 +256,7 @@ export default function CheckAvailabilityCard() {
                                                         {room.valid ? (
                                                             isSelected ? (
                                                                 <div className="w-5 h-5 bg-white rounded-lg flex items-center justify-center text-indigo-600 shadow-sm">
-                                                                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                                                    <Check className="w-3.5 h-3.5 stroke-3" />
                                                                 </div>
                                                             ) : (
                                                                 <div className="w-5 h-5 rounded-lg border border-gray-300 bg-white group-hover:border-gray-400 transition-colors" />

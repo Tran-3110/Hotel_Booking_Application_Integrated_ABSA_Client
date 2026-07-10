@@ -4,10 +4,10 @@ export interface RoomDetailSnapShotResponse {
     valid: boolean
 }
 
-export interface RoomTypeValidResponse {
-    roomTypeId: string
-    name: string
-    depositedPercent: number
-    price: number
-    data: RoomDetailSnapShotResponse[]
-}
+// export interface RoomTypeValidResponse {
+//     roomTypeId: string
+//     name: string
+//     depositedPercent: number
+//     price: number
+//     data: RoomDetailSnapShotResponse[]
+// }
