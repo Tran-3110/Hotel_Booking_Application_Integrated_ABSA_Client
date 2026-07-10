@@ -1,3 +1,5 @@
+import {UserRole} from "@/common/enums/user";
+
 export interface AuthUser {
     id: string;
     email: string;
@@ -9,7 +11,7 @@ export interface AuthUser {
     description: string | null;
     isActive: boolean;
     isVerified: boolean;
-    role: number;
+    role: UserRole;
     jwtToken: string | null;
 }
 
