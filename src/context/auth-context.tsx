@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!data.jwtToken) return
         setAuthState({ user: data, isLoading: false })
         Cookies.set("token", data.jwtToken, { expires: 7 }) //Expired in 7 days
+        Cookies.set("user_role", data.role)
         localStorage.setItem("user_data", JSON.stringify(data))
     }
 
