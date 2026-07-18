@@ -1,14 +1,13 @@
-import {UserRole} from "@/common/enums/user";
+import {Gender, UserRole} from "@/common/enums/user";
 
 export interface AuthUser {
     id: string;
     email: string;
     username: string;
     displayName: string | null;
-    gender: number;
+    gender: Gender;
     avatar: string | null;
     phone: string | null;
-    description: string | null;
     isActive: boolean;
     isVerified: boolean;
     role: UserRole;

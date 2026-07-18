@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { fallBackColor, getFallback } from "@/common/utils/avatar-loader";
+import {useRouter} from "next/navigation";
 // import { usePathname } from "next/navigation";
 
 export function NavBar() {
@@ -20,6 +21,7 @@ export function NavBar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [mounted, setMounted] = useState(false);
     const { setTheme, theme } = useTheme();
+    const router = useRouter();
     // const pathName = usePathname()
     // const isHomepage = pathName === "/"
 
@@ -162,7 +164,7 @@ export function NavBar() {
                                             </div>
                                         </DropdownMenuLabel>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="cursor-pointer">
+                                        <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/user/profile")}>
                                             <User className="mr-2 h-4 w-4" /> Thông tin cá nhân
                                         </DropdownMenuItem>
                                         <DropdownMenuItem className="cursor-pointer">

@@ -54,8 +54,8 @@ export default function AdminSideBar() {
                             href={item.href}
                             className={`px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition-all duration-200 ${
                                 isActive
-                                    ? 'bg-purple-50 text-purple-700 border border-purple-100 shadow-sm' // Trạng thái đang chọn: nền tím nhạt, chữ tím đậm
-                                    : 'text-gray-500 hover:bg-purple-50 hover:text-purple-600 hover:translate-x-1' // Trạng thái bình thường: chữ xám, hover lên màu tím
+                                    ? 'bg-purple-50 text-purple-700 border border-purple-100 shadow-sm' 
+                                    : 'text-gray-500 hover:bg-purple-50 hover:text-purple-600 hover:translate-x-1'
                             }`}
                         >
                             <item.icon className={`h-5 w-5 ${isActive ? 'opacity-100' : 'opacity-70'}`} />
