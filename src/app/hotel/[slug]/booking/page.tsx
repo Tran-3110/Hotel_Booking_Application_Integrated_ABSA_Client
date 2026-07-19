@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button"
 import CheckRoomBox from "@/components/hotel/check-room-box"
 import { ReduxState } from "@/constants/redux-state";
 // import { RoomTypeValidResponse } from "@/common/types/room";
-import { getRoomDetailsValid, createOrder } from "@/services/booking-service";
+import { bookingService } from "@/services/booking-service";
 import { hotelService } from "@/services/hotel-service";
 import { setDataBooking } from "@/store/slices/bookingSlice";
 import { OrderRequest, RoomDetailValidResponse } from "@/common/types/order"
@@ -53,7 +53,7 @@ export default function CheckAvailabilityCard() {
         setSelectedRooms([])
 
         try {
-            const res = await getRoomDetailsValid(hotelId, inDate, outDate)
+            const res = await bookingService.getRoomDetailsValid(hotelId, inDate, outDate)
             setValidRooms(res)
         } catch (error) {
             console.error("Lỗi khi kiểm tra phòng trống:", error)
@@ -122,7 +122,7 @@ export default function CheckAvailabilityCard() {
                 totalCapacity: selectedRooms.length * 2, // FIXME: Impl this data
             }
 
-            const res = await createOrder(payload)
+            const res = await bookingService.createOrder(payload)
 
             if (res.status) {
                 toast.success(`Tạo đơn đặt phòng thành công!\nMã đơn: ${res.orderId}\nVui lòng chờ khách sạn xác nhận để tiến hành thanh toán.`)
