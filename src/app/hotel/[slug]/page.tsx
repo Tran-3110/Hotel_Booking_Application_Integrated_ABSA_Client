@@ -50,7 +50,7 @@ export default async function HotelDetail({params} : {params: Promise<{slug: str
     return (
         <div className="px-0 md:px-60">
             <nav className="sticky top-18 z-10 bg-white">
-                <div className="w-full border-b flex gap-6 w-full">
+                <div className="w-full border-b flex gap-6">
                     {navItems.map((item) => (
                         <Link
                             key={item.href}
@@ -84,7 +84,7 @@ export default async function HotelDetail({params} : {params: Promise<{slug: str
                         <p className="text-sm text-gray-600 mt-3 flex gap-2"><MapPin
                             className="text-red-700"/> {hotel.address.street}, {hotel.address.ward}, {hotel.address.province}
                         </p>
-                        <div className="absolute w-70 top-36 right-[15rem]">
+                        <div className="absolute w-70 top-36 right-60">
                             <CheckRoomBox checkPage={"hotel"} id={hotelId} viewCount={hotel.viewCount}
                                           title={hotel.name} thumbnail={hotel.thumbnail}
                                           address={hotel.address.street + ", " + hotel.address.ward + ", " + hotel.address.province}
