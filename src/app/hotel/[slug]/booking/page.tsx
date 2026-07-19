@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useEffect, useMemo, useState } from "react"
-import { notFound, useParams, useSearchParams } from "next/navigation"
+import { notFound, useParams, useRouter, useSearchParams } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
 import {
     Star,
@@ -21,10 +21,11 @@ import { Button } from "@/components/ui/button"
 import CheckRoomBox from "@/components/hotel/check-room-box"
 import { ReduxState } from "@/constants/redux-state";
 // import { RoomTypeValidResponse } from "@/common/types/room";
-import { getRoomDetailsValid } from "@/services/booking-service";
+import { getRoomDetailsValid, createOrder } from "@/services/booking-service";
 import { hotelService } from "@/services/hotel-service";
 import { setDataBooking } from "@/store/slices/bookingSlice";
-import { RoomDetailValidResponse } from "@/common/types/order"
+import { OrderRequest, RoomDetailValidResponse } from "@/common/types/order"
+import { toast } from "sonner"
 
 export default function CheckAvailabilityCard() {
     const hotelData = useSelector((state: ReduxState) => state.bookingState)
@@ -32,9 +33,11 @@ export default function CheckAvailabilityCard() {
     const params = useParams();
     const slug = params.slug as string;
     const hotelId = slug.slice(slug.lastIndexOf(".") + 1);
+    const router = useRouter()
 
     const [validRooms, setValidRooms] = useState<RoomDetailValidResponse[]>([])
     const [loading, setLoading] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const [selectedRooms, setSelectedRooms] = useState<{
         id: string;
@@ -45,7 +48,7 @@ export default function CheckAvailabilityCard() {
     const checkIn = searchParams.get("checkIn")
     const checkOut = searchParams.get("checkOut")
 
-    const handleCheckAvailability = async (inDate: string, outDate: string) => {
+    const handleCheckAvailability = React.useCallback(async (inDate: string, outDate: string) => {
         setLoading(true)
         setSelectedRooms([])
 
@@ -57,8 +60,9 @@ export default function CheckAvailabilityCard() {
         } finally {
             setLoading(false)
         }
-    }
-    const fetchHotelData = async () => {
+    }, [hotelId])
+
+    const fetchHotelData = React.useCallback(async () => {
         try {
             const res = await hotelService.getSnapshotById(hotelId);
             if (res) {
@@ -72,9 +76,9 @@ export default function CheckAvailabilityCard() {
                 }))
             } else notFound()
         } catch (error) {
-            console.error("Lỗi khi kiểm tra phòng trống:", error)
+            console.error("Lỗi khi lấy thông tin khách sạn:", error)
         }
-    }
+    }, [hotelId, dispatch])
 
     useEffect(() => {
         if (hotelData.hotelId === "") fetchHotelData();
@@ -82,7 +86,7 @@ export default function CheckAvailabilityCard() {
         if (checkIn && checkOut) {
             handleCheckAvailability(checkIn, checkOut)
         }
-    }, [checkIn, checkOut])
+    }, [checkIn, checkOut, hotelData.hotelId, fetchHotelData, handleCheckAvailability])
 
     const handleToggleSelectRoom = (roomId: string, isValid: boolean, price: number) => {
         if (!isValid) return
@@ -104,19 +108,34 @@ export default function CheckAvailabilityCard() {
         }, 0)
     }, [selectedRooms])
 
-    const handleConfirmBooking = () => {
-        if (selectedRooms.length === 0) return
+    const handleConfirmBooking = async () => {
+        if (selectedRooms.length === 0 || !checkIn || !checkOut) return
 
-        const finalPayload = {
-            hotelId: hotelData?.hotelId,
-            checkIn: checkIn,
-            checkOut: checkOut,
-            selectedRoomIds: selectedRooms.map(r => r.id),
-            totalDeposit: totalDepositAmount
+        setIsSubmitting(true)
+
+        try {
+            const payload: OrderRequest = {
+                roomDetailsId: selectedRooms.map(r => r.id),
+                checkin: checkIn,
+                checkout: checkOut,
+                note: "Khách tự đặt phòng qua hệ thống", // FIXME: Impl this data
+                totalCapacity: selectedRooms.length * 2, // FIXME: Impl this data
+            }
+
+            const res = await createOrder(payload)
+
+            if (res.status) {
+                toast.success(`Tạo đơn đặt phòng thành công!\nMã đơn: ${res.orderId}\nVui lòng chờ khách sạn xác nhận để tiến hành thanh toán.`)
+
+                //Redirect to order detail page (impl later)
+                router.push(`/user/orders/${res.orderId}`)
+            }
+        } catch (error: unknown) {
+            console.error("Lỗi khi đặt phòng:", error)
+            toast.error("Có lỗi xảy ra khi tạo đơn đặt phòng. Vui lòng thử lại!")
+        } finally {
+            setIsSubmitting(false)
         }
-
-        alert(`Xác nhận gửi đơn hàng thành công!\nSố phòng chọn: ${selectedRooms.length}\nTổng tiền cọc: ${totalDepositAmount.toLocaleString('vi-VN')}đ`)
-        console.log("Payload gửi lên hệ thống:", finalPayload)
     }
 
     return (
@@ -292,15 +311,24 @@ export default function CheckAvailabilityCard() {
                             size="lg"
                             className={cn(
                                 "font-semibold px-8 h-14 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base",
-                                selectedRooms.length > 0
+                                selectedRooms.length > 0 && !isSubmitting
                                     ? "bg-indigo-600 hover:bg-indigo-700 text-white active:scale-[0.98] shadow-indigo-600/10"
                                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
                             )}
                             onClick={handleConfirmBooking}
-                            disabled={selectedRooms.length === 0}
+                            disabled={selectedRooms.length === 0 || isSubmitting}
                         >
-                            Tiến hành xác nhận đặt phòng
-                            <ChevronsRight className="w-5 h-5" />
+                            {isSubmitting ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                    Đang xử lý...
+                                </>
+                            ) : (
+                                <>
+                                    Tiến hành xác nhận đặt phòng
+                                    <ChevronsRight className="w-5 h-5" />
+                                </>
+                            )}
                         </Button>
                     </div>
 
