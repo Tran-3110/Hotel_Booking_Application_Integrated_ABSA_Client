@@ -1,5 +1,5 @@
 import UserManagement from "@/components/admin/user-management";
 
-export default function HotelAdminPage() {
+export default function UserAdminPage() {
     return <UserManagement />;
 }

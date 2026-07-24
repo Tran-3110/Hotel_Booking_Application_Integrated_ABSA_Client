@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Store, Users, ShoppingBag, LayoutDashboard } from "lucide-react";
+import {Store, Users, ShoppingBag, LayoutDashboard, Sparkles} from "lucide-react";
 
 export default function AdminSideBar() {
     const pathName = usePathname();
@@ -27,6 +27,11 @@ export default function AdminSideBar() {
             name: 'Quản lý đơn hàng',
             href: '/admin/orders',
             icon: ShoppingBag
+        },
+        {
+            name: 'Quản lý hệ thống AI',
+            href: '/admin/ai',
+            icon: Sparkles
         }
     ];
 
