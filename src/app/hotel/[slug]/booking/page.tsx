@@ -34,6 +34,7 @@ export default function CheckAvailabilityCard() {
     const router = useRouter()
     const searchParams = useSearchParams()
 
+
     const checkIn = searchParams.get("checkIn")
     const checkOut = searchParams.get("checkOut")
 
@@ -85,7 +86,7 @@ export default function CheckAvailabilityCard() {
                     avgRating: res.avgRating
                 }))
             } else {
-                setIsNotFound(true) 
+                setIsNotFound(true)
             }
         } catch (error) {
             console.error("Lỗi khi lấy thông tin khách sạn:", error)
@@ -146,7 +147,7 @@ export default function CheckAvailabilityCard() {
 
             if (res.status) {
                 toast.success(`Tạo đơn đặt phòng thành công!\nMã đơn: ${res.orderId}\nVui lòng chờ khách sạn xác nhận để tiến hành thanh toán.`)
-                router.push(`/user/orders/${res.orderId}`)
+                router.push(`/user/order`)
             }
         } catch (error: unknown) {
             console.error("Lỗi khi đặt phòng:", error)

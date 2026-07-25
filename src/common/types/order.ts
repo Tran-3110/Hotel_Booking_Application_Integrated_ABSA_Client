@@ -86,3 +86,8 @@ export interface Order {
     updatedAt: string;
     totalAmount?: number;
 }
+
+export interface OrderStatusCount {
+    status: OrderStatus
+    count: number
+}

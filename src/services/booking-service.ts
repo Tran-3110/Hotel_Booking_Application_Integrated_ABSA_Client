@@ -5,9 +5,12 @@ import {
     OrderResponse,
     UpdateOrderStatusRequest,
     UpdateOrderResponse,
-    RoomDetailValidResponse
+    RoomDetailValidResponse,
+    HistoryOrderResponse,
+    OrderStatusCount
 } from '@/common/types/order';
 import { OrderStatus } from '@/common/types/payment';
+import { PageResponse } from "@/common/types/page";
 
 export const bookingService = {
     getRoomDetailsValid: async (
@@ -38,4 +41,18 @@ export const bookingService = {
         const response = await apiClient.put<UpdateOrderResponse>(`/booking/${orderId}/status`, requestPayload);
         return response.data;
     },
+
+    countOrders: async () => {
+        const response = await apiClient.get<OrderStatusCount[]>(`/booking/count`)
+        return response.data
+    },
+
+    getHistoryOrder: async (
+        status: OrderStatus,
+        page: number,
+        size: number
+    ): Promise<PageResponse<HistoryOrderResponse>> => {
+        const response = await apiClient.get(`/booking/get`, { params: { status, page, size } })
+        return response.data
+    }
 }
