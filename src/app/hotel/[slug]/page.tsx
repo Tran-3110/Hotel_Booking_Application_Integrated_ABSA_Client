@@ -71,13 +71,13 @@ export default async function HotelDetail({params} : {params: Promise<{slug: str
                     <section id="overview">
                         <p className="text-sm content-center text-gray-600 flex gap-2"><EyeIcon/>
                             <strong>{hotel.viewCount}</strong> người xem khách sạn</p>
-                        <div className="flex items-center gap-5 text-3xl font-semibold text-gray-900">{hotel.name}
+                        <div className="flex items-center max-w-2xl gap-5 text-3xl font-semibold text-gray-900">{hotel.name}
                             <div>
                                 <span
                                     className="flex gap-1 items-center bg-yellow-100/50 text-yellow-700 font-bold px-2 py-1 rounded-lg text-sm">
                                 {hotel.avgRating} <Star className="h-full text-yellow-400" size={"1rem"}
                                                         fill={"currentColor"}/>
-                            </span>
+                                </span>
                             </div>
 
                         </div>

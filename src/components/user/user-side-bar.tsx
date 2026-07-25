@@ -2,27 +2,66 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, Package, Store } from "lucide-react"; 
+import { Package, ShieldCheck, Store, User } from "lucide-react";
+import { AuthUser } from "@/common/types/auth";
+import { UserRole } from "@/common/enums/user";
+import { useEffect, useState } from "react";
+
+const navItems = [
+    {
+        id: "info",
+        name: 'Thông tin cá nhân',
+        href: '/user/profile',
+        icon: User,
+    },
+    {
+        id: "order",
+        name: 'Quản lý đơn hàng',
+        href: '/user/order',
+        icon: Package,
+    },
+    {
+        id: "admin",
+        name: 'Trang Admin',
+        href: '/admin',
+        icon: ShieldCheck,
+    }
+];
 
 export default function UserSideBar() {
     const pathName = usePathname();
+    const [data, setData] = useState<AuthUser | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const navItems = [
-        {
-            name: 'Thông tin cá nhân',
-            href: '/user/profile',
-            icon: User, 
-        },
-        {
-            name: 'Quản lý đơn hàng',
-            href: '/user/order',
-            icon: Package, 
-        },
-    ];
+    useEffect(() => {
+        const user = localStorage.getItem("user_data");
+        if (user) {
+            try {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setData(JSON.parse(user));
+            } catch (error) {
+                console.error("Lỗi parse user data:", error);
+            }
+        }
+        setLoading(false);
+    }, []);
+    
+    if (loading) {
+        return (
+            <aside className="w-64 px-5 py-6 animate-pulse">
+                <div className="h-6 w-32 bg-gray-200 rounded mb-6"></div>
+                <div className="space-y-3">
+                    <div className="h-11 bg-gray-100 rounded-xl"></div>
+                    <div className="h-11 bg-gray-100 rounded-xl"></div>
+                </div>
+            </aside>
+        );
+    }
+
+    if (!data) return null;
 
     return (
         <aside className="flex flex-col w-64 px-5 py-6 transition-all duration-300">
-
             {/* Tiêu đề Sidebar */}
             <div className="mb-6 px-4">
                 <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -35,10 +74,14 @@ export default function UserSideBar() {
             <div className="flex flex-col flex-1 space-y-2">
                 {navItems.map((item) => {
                     const isActive = pathName.startsWith(item.href);
+                    
+                    if (item.id === 'admin' && data?.role !== UserRole.ADMIN) {
+                        return null;
+                    }
 
                     return (
                         <Link
-                            key={item.name}
+                            key={item.id}
                             href={item.href}
                             className={`group px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition-all duration-200 ${
                                 isActive
