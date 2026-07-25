@@ -10,6 +10,8 @@ import {PageResponse} from "@/common/types/page";
 import PaginationCustom from "@/components/pagination-custom";
 import {formatDate} from "@/common/utils/format";
 import {Button} from "@/components/ui/button";
+import {useRouter} from "next/navigation";
+import {transformTitleToSlug} from "@/common/utils/slug";
 
 const TAB_CONFIG = [
     {value: OrderStatus.PENDING, label: "Chờ xử lý"},
@@ -24,7 +26,7 @@ const TAB_CONFIG = [
 export default function OrderPage() {
     const [activeTab, setActiveTab] = useState<OrderStatus>(OrderStatus.PENDING);
     const [orderCounts, setOrderCounts] = useState<Record<string, number>>({});
-
+    const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [size] = useState(10);
@@ -264,7 +266,7 @@ export default function OrderPage() {
                                                     <Star className="w-4 h-4"/> Đánh giá
                                                 </Button>
                                             )}
-                                            <Button
+                                            <Button onClick={() => router.push(`/hotel/${transformTitleToSlug(order.hotel.name)}.${order.hotel.id}`)}
                                                 className="flex-1 sm:flex-none px-6 py-5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl text-sm transition-colors text-center shadow-sm">
                                                 Đặt lại
                                             </Button>

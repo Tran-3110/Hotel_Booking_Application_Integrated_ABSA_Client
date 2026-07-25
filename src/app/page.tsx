@@ -3,7 +3,6 @@
 import { HomePageStatisticResponse } from "@/common/types/home";
 import { imageLoader } from "@/common/utils/image-loader";
 import { Footer } from "@/components/footer";
-import { NavBar } from "@/components/nav-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,10 +15,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {transformTitleToSlug} from "@/common/utils/slug";
+import {useRouter} from "next/navigation";
 
 export default function Home() {
     const [data, setData] = useState<HomePageStatisticResponse | null>(null)
-
+    const router = useRouter()
     useEffect(() => {
         const fetchHomeData = async () => {
             try {
@@ -192,7 +192,9 @@ export default function Home() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-stretch">
                         {data?.promotionalHotels?.slice(0, 5).map(hotel => (
-                            <Card key={hotel.id} className="flex flex-col relative w-full pt-0 overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1">
+                            <Card key={hotel.id}
+                                  onClick={() => router.push(`/hotel/${transformTitleToSlug(hotel.name)}.${hotel.id}`)}
+                                  className="flex flex-col relative w-full pt-0 overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1">
                                 <div className="relative w-full aspect-4/3 shrink-0">
                                     <Image
                                         className="object-cover"
