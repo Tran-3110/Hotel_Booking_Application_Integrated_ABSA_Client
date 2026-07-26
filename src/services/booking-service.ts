@@ -1,30 +1,58 @@
-import {RoomTypeValidResponse} from "@/common/types/room";
+// import { RoomTypeValidResponse } from "@/common/types/room";
 import apiClient from "@/services/api-client";
-import {OrderStatus} from "@/common/enums/order";
-import {PageResponse} from "@/common/types/page";
-import {HistoryOrderResponse} from "@/common/types/order";
+import {
+    OrderRequest,
+    OrderResponse,
+    UpdateOrderStatusRequest,
+    UpdateOrderResponse,
+    RoomDetailValidResponse,
+    HistoryOrderResponse,
+    OrderStatusCount
+} from '@/common/types/order';
+import { OrderStatus } from '@/common/types/payment';
+import { PageResponse } from "@/common/types/page";
 
 export const bookingService = {
-    getRoomDetailsValid: async (hotelId: string, checkIn: string, checkOut: string): Promise<RoomTypeValidResponse[]> => {
-        const res = await apiClient.get(`/booking/choose-room`, {
+    getRoomDetailsValid: async (
+        hotelId: string,
+        startDate: string,
+        endDate: string
+    ): Promise<RoomDetailValidResponse[]> => {
+        const response = await apiClient.get<RoomDetailValidResponse[]>('/booking/choose-room', {
             params: {
-                hotelId: hotelId,
-                startDate: checkIn,
-                endDate: checkOut,
+                hotelId,
+                startDate,
+                endDate
             }
-        })
-        return res.data
+        });
+        return response.data;
     },
-    getHistoryOrder: async (status: OrderStatus, page: number, size: number): Promise<PageResponse<HistoryOrderResponse>> => {
-        const res = await apiClient.get(`/booking/get`, {
-            params: {
-                status, page, size,
-            }
-        })
-        return res.data
+
+    createOrder: async (orderRequest: OrderRequest): Promise<OrderResponse> => {
+        const response = await apiClient.post<OrderResponse>('/booking/create-order', orderRequest);
+        return response.data;
     },
-    countOrders: async (): Promise<{status: OrderStatus, count: number}[]> => {
-        const res = await apiClient.get(`/booking/count`)
-        return res.data
+
+    updateOrderStatus: async (
+        orderId: string,
+        status: OrderStatus
+    ): Promise<UpdateOrderResponse> => {
+        const requestPayload: UpdateOrderStatusRequest = { status };
+        const response = await apiClient.put<UpdateOrderResponse>(`/booking/${orderId}/status`, requestPayload);
+        return response.data;
+    },
+
+    countOrders: async () => {
+        const response = await apiClient.get<OrderStatusCount[]>(`/booking/count`)
+        return response.data
+    },
+
+    getHistoryOrder: async (
+        status: OrderStatus,
+        page: number,
+        size: number
+    ): Promise<PageResponse<HistoryOrderResponse>> => {
+        const response = await apiClient.get(`/booking/get`, { params: { status, page, size } })
+        return response.data
     }
 }

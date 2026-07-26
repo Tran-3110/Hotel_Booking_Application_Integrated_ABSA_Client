@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import {useEffect, useMemo, useState} from "react"
-import {notFound, useParams, useSearchParams} from "next/navigation"
-import {useDispatch, useSelector} from "react-redux"
+import { useEffect, useMemo, useState } from "react"
+import { notFound, useParams, useRouter, useSearchParams } from "next/navigation"
+import { useDispatch, useSelector } from "react-redux"
 import {
     Star,
     XCircle,
@@ -17,35 +17,47 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+// import { Badge } from "@/components/ui/badge"
 import CheckRoomBox from "@/components/hotel/check-room-box"
-import {ReduxState} from "@/constants/redux-state";
-import {RoomTypeValidResponse} from "@/common/types/room";
-import {bookingService} from "@/services/booking-service";
-import {hotelService} from "@/services/hotel-service";
-import {setDataBooking} from "@/store/slices/bookingSlice";
+import { ReduxState } from "@/constants/redux-state"
+// import { RoomTypeValidResponse } from "@/common/types/room";
+import { bookingService } from "@/services/booking-service"
+import { hotelService } from "@/services/hotel-service"
+import { setDataBooking } from "@/store/slices/bookingSlice"
+import { OrderRequest, RoomDetailValidResponse } from "@/common/types/order"
+import { toast } from "sonner"
 
 export default function CheckAvailabilityCard() {
     const hotelData = useSelector((state: ReduxState) => state.bookingState)
     const dispatch = useDispatch()
-    const params = useParams();
-    const slug = params.slug as string;
-    const hotelId = slug.slice(slug.lastIndexOf(".") + 1);
+    const params = useParams()
+    const router = useRouter()
+    const searchParams = useSearchParams()
 
-    const [validRooms, setValidRooms] = useState<RoomTypeValidResponse[]>([])
+
+    const checkIn = searchParams.get("checkIn")
+    const checkOut = searchParams.get("checkOut")
+
+    const slug = (params?.slug as string) || ""
+    const hotelId = useMemo(() => {
+        if (!slug || !slug.includes(".")) return null;
+        return slug.slice(slug.lastIndexOf(".") + 1);
+    }, [slug]);
+
+    const [validRooms, setValidRooms] = useState<RoomDetailValidResponse[] | null>(null)
     const [loading, setLoading] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const [isNotFound, setIsNotFound] = useState(false)
 
     const [selectedRooms, setSelectedRooms] = useState<{
         id: string;
         price: number;
-        depositedPercent: number;
     }[]>([])
 
-    const searchParams = useSearchParams()
-    const checkIn = searchParams.get("checkIn")
-    const checkOut = searchParams.get("checkOut")
+    const handleCheckAvailability = React.useCallback(async (inDate: string, outDate: string) => {
+        if (!hotelId) return;
 
-    const handleCheckAvailability = async (inDate: string, outDate: string) => {
         setLoading(true)
         setSelectedRooms([])
 
@@ -57,11 +69,14 @@ export default function CheckAvailabilityCard() {
         } finally {
             setLoading(false)
         }
-    }
-    const fetchHotelData = async ()  => {
+    }, [hotelId])
+
+    const fetchHotelData = React.useCallback(async () => {
+        if (!hotelId) return;
+
         try {
             const res = await hotelService.getSnapshotById(hotelId);
-            if(res) {
+            if (res) {
                 dispatch(setDataBooking({
                     hotelId: res.id,
                     title: res.name,
@@ -70,21 +85,32 @@ export default function CheckAvailabilityCard() {
                     address: `${res.street}, ${res.ward}, ${res.province}`,
                     avgRating: res.avgRating
                 }))
-            } else notFound()
+            } else {
+                setIsNotFound(true)
+            }
         } catch (error) {
-            console.error("Lỗi khi kiểm tra phòng trống:", error)
+            console.error("Lỗi khi lấy thông tin khách sạn:", error)
+            setIsNotFound(true)
         }
-    }
+    }, [hotelId, dispatch])
 
     useEffect(() => {
-        if(hotelData.hotelId === "") fetchHotelData();
-        
+        if (!hotelId) {
+            setIsNotFound(true);
+            return;
+        }
+
+        if (hotelData.hotelId !== hotelId) {
+            fetchHotelData();
+        }
+
         if (checkIn && checkOut) {
             handleCheckAvailability(checkIn, checkOut)
         }
-    }, [checkIn, checkOut])
+    }, [checkIn, checkOut, hotelData.hotelId, hotelId, fetchHotelData, handleCheckAvailability])
 
-    const handleToggleSelectRoom = (roomId: string, isValid: boolean, price: number, percent: number) => {
+
+    const handleToggleSelectRoom = (roomId: string, isValid: boolean, price: number) => {
         if (!isValid) return
 
         setSelectedRooms((prev) => {
@@ -92,47 +118,63 @@ export default function CheckAvailabilityCard() {
             if (isExisted) {
                 return prev.filter(room => room.id !== roomId)
             } else {
-                return [...prev, { id: roomId, price, depositedPercent: percent }]
+                return [...prev, { id: roomId, price }]
             }
         })
     }
 
     const totalDepositAmount = useMemo(() => {
         return selectedRooms.reduce((sum, room) => {
-            const rate = room.depositedPercent > 1 ? room.depositedPercent / 100 : room.depositedPercent
-            return sum + (room.price * rate)
+            return sum + (room.price)
         }, 0)
     }, [selectedRooms])
 
-    const handleConfirmBooking = () => {
-        if (selectedRooms.length === 0) return
+    const handleConfirmBooking = async () => {
+        if (selectedRooms.length === 0 || !checkIn || !checkOut) return
 
-        const finalPayload = {
-            hotelId: hotelData?.hotelId,
-            checkIn: checkIn,
-            checkOut: checkOut,
-            selectedRoomIds: selectedRooms.map(r => r.id),
-            totalDeposit: totalDepositAmount
+        setIsSubmitting(true)
+
+        try {
+            const payload: OrderRequest = {
+                roomDetailsId: selectedRooms.map(r => r.id),
+                checkin: checkIn,
+                checkout: checkOut,
+                note: "Khách tự đặt phòng qua hệ thống", // FIXME: Impl this data
+                totalCapacity: selectedRooms.length * 2, // FIXME: Impl this data
+            }
+
+            const res = await bookingService.createOrder(payload)
+
+            if (res.status) {
+                toast.success(`Tạo đơn đặt phòng thành công!\nMã đơn: ${res.orderId}\nVui lòng chờ khách sạn xác nhận để tiến hành thanh toán.`)
+                router.push(`/user/order`)
+            }
+        } catch (error: unknown) {
+            console.error("Lỗi khi đặt phòng:", error)
+            toast.error("Có lỗi xảy ra khi tạo đơn đặt phòng. Vui lòng thử lại!")
+        } finally {
+            setIsSubmitting(false)
         }
-
-        alert(`Xác nhận gửi đơn hàng thành công!\nSố phòng chọn: ${selectedRooms.length}\nTổng tiền cọc: ${totalDepositAmount.toLocaleString('vi-VN')}đ`)
-        console.log("Payload gửi lên hệ thống:", finalPayload)
     }
+
+    if (isNotFound) {
+        return notFound()
+    }
+
 
     return (
         <div className="max-w-5xl mx-auto mt-15 p-4 md:p-6 space-y-6 antialiased">
-
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                 <div className="md:col-span-2 space-y-2.5">
                     <div className="flex items-center gap-2">
                         {hotelData?.viewCount != null && (
                             <span className="text-xs text-gray-400 font-medium">
-            | {hotelData.viewCount.toLocaleString('vi-VN')} lượt xem</span>
+                                | {hotelData.viewCount.toLocaleString('vi-VN')} lượt xem</span>
                         )}
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
                         <h1 className="text-2xl md:text-3xl font-semibold text-gray-950 tracking-tight">
-                            {hotelData?.title || "Not Found"}
+                            {hotelData?.title || "Đang tải thông tin..."}
                         </h1>
                         <div className="flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-0.5 rounded-lg text-xs font-bold border border-amber-200">
                             {hotelData?.avgRating || 0} <Star className="w-3 h-3 fill-amber-500 stroke-amber-500" />
@@ -140,8 +182,8 @@ export default function CheckAvailabilityCard() {
                     </div>
                     <p className="text-sm text-gray-500 flex items-center gap-1.5">
                         <span className="inline-block p-1 bg-red-50 text-red-500 rounded-md"><MapPin
-                            className="text-red-700"/></span>
-                        {hotelData?.address || "Not Found"}
+                            className="text-red-700" /></span>
+                        {hotelData?.address || "Đang tải địa chỉ..."}
                     </p>
                 </div>
 
@@ -176,12 +218,10 @@ export default function CheckAvailabilityCard() {
 
             {validRooms && !loading && (
                 <div className="space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-300">
-
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                         <div className="space-y-0.5">
                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Kiểm tra phòng trống</span>
                         </div>
-                        {/* Đổi trạng thái hiển thị giỏ hàng sang màu Indigo đồng bộ */}
                         <div className="flex items-center gap-3 bg-indigo-50/70 border border-indigo-100/80 px-4 py-2 rounded-xl self-start sm:self-center">
                             <div className="p-2 bg-indigo-500 rounded-lg text-white">
                                 <Home className="w-4 h-4" />
@@ -198,13 +238,11 @@ export default function CheckAvailabilityCard() {
                     </h2>
 
                     <div className="grid grid-cols-1 gap-5">
-                        {validRooms?.map((roomType) => {
-                            const displayPercent = roomType.depositedPercent > 1 ? roomType.depositedPercent : roomType.depositedPercent * 100
-                            const calculatedDepositPerRoom = roomType.price * (displayPercent / 100)
+                        {validRooms.map((roomType) => {
+                            const calculatedDepositPerRoom = roomType.price
 
                             return (
                                 <div key={roomType.roomTypeId} className="bg-white rounded-2xl border border-gray-200/70 shadow-sm hover:shadow-md transition-all overflow-hidden grid grid-cols-1 lg:grid-cols-4">
-
                                     <div className="p-5 bg-slate-50/50 border-b lg:border-b-0 lg:border-r border-gray-100 space-y-4 flex flex-col justify-between">
                                         <div className="space-y-1">
                                             <h3 className="font-bold text-gray-900 text-base leading-snug">{roomType.name}</h3>
@@ -217,9 +255,6 @@ export default function CheckAvailabilityCard() {
                                             </div>
                                             <div className="flex justify-between items-center text-xs">
                                                 <span className="text-gray-400 flex items-center gap-1"><Percent className="w-3.5 h-3.5 text-gray-400" /> Cọc trước:</span>
-                                                <Badge variant="secondary" className="bg-orange-50 text-orange-700 font-bold border-none text-[10px] px-1.5 py-0">
-                                                    {displayPercent}%
-                                                </Badge>
                                             </div>
                                             <div className="pt-1.5 border-t border-dashed border-gray-200 flex justify-between items-center text-xs">
                                                 <span className="font-semibold text-gray-900">Cọc / phòng:</span>
@@ -239,7 +274,7 @@ export default function CheckAvailabilityCard() {
                                                     <button
                                                         key={room.id}
                                                         disabled={!room.valid}
-                                                        onClick={() => handleToggleSelectRoom(room.id, room.valid, roomType.price, roomType.depositedPercent)}
+                                                        onClick={() => handleToggleSelectRoom(room.id, room.valid, roomType.price)}
                                                         className={cn(
                                                             "group flex items-center justify-between p-3 rounded-xl border text-xs font-semibold transition-all relative select-none text-left",
                                                             room.valid
@@ -257,7 +292,7 @@ export default function CheckAvailabilityCard() {
                                                         {room.valid ? (
                                                             isSelected ? (
                                                                 <div className="w-5 h-5 bg-white rounded-lg flex items-center justify-center text-indigo-600 shadow-sm">
-                                                                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                                                    <Check className="w-3.5 h-3.5 stroke-3" />
                                                                 </div>
                                                             ) : (
                                                                 <div className="w-5 h-5 rounded-lg border border-gray-300 bg-white group-hover:border-gray-400 transition-colors" />
@@ -270,13 +305,11 @@ export default function CheckAvailabilityCard() {
                                             })}
                                         </div>
                                     </div>
-
                                 </div>
                             )
                         })}
                     </div>
 
-                    {/* Thanh hóa đơn cố định (Sticky Bottom Bar) */}
                     <div className="sticky bottom-4 left-0 right-0 bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 z-50">
                         <div className="space-y-1">
                             <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -293,18 +326,26 @@ export default function CheckAvailabilityCard() {
                             size="lg"
                             className={cn(
                                 "font-semibold px-8 h-14 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base",
-                                selectedRooms.length > 0
+                                selectedRooms.length > 0 && !isSubmitting
                                     ? "bg-indigo-600 hover:bg-indigo-700 text-white active:scale-[0.98] shadow-indigo-600/10"
                                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
                             )}
                             onClick={handleConfirmBooking}
-                            disabled={selectedRooms.length === 0}
+                            disabled={selectedRooms.length === 0 || isSubmitting}
                         >
-                            Tiến hành xác nhận đặt phòng
-                            <ChevronsRight className="w-5 h-5" />
+                            {isSubmitting ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                    Đang xử lý...
+                                </>
+                            ) : (
+                                <>
+                                    Tiến hành xác nhận đặt phòng
+                                    <ChevronsRight className="w-5 h-5" />
+                                </>
+                            )}
                         </Button>
                     </div>
-
                 </div>
             )}
         </div>

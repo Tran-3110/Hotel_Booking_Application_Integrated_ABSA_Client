@@ -52,6 +52,7 @@ export default function OrderPage() {
                 setOrderCounts(mappedCounts);
                 setOrders(dataRes);
             } catch (error) {
+                console.log(error)
                 alert("Đã có lỗi xảy ra khi lấy dữ liệu!");
             } finally {
                 setIsLoading(false);
@@ -223,7 +224,7 @@ export default function OrderPage() {
                                                 Chi tiết phòng ({countTotalRooms(order.data)} phòng)
                                             </h4>
                                             <div
-                                                className="space-y-3 max-h-[140px] overflow-y-auto pr-2 custom-scrollbar">
+                                                className="space-y-3 max-h-35 overflow-y-auto pr-2 custom-scrollbar">
                                                 {order.data.map((roomType, index) => (
                                                     <div key={roomType.id || index}>
                                                         <p className="text-sm font-semibold text-purple-700">{roomType.name}</p>
