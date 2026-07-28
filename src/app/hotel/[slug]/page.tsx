@@ -1,6 +1,6 @@
 import Link from "next/link";
 import HotelSlider from "@/components/hotel/hotel-slider";
-import {EyeIcon, MapPin, Star} from "lucide-react";
+import { EyeIcon, MapPin, Star } from "lucide-react";
 import IconHotelUtility from "@/components/icon-render/icon-hotel-utility";
 import {
     Table,
@@ -11,10 +11,12 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import {RoomType} from "@/components/hotel/room-type";
-import {hotelService} from "@/services/hotel-service";
-import {notFound} from "next/navigation";
+import { RoomType } from "@/components/hotel/room-type";
+import { hotelService } from "@/services/hotel-service";
+import { notFound } from "next/navigation";
 import CheckRoomBox from "@/components/hotel/check-room-box";
+import { commentService } from "@/services/comment-service";
+import { CommentResponse } from "@/common/types/comment";
 
 const navItems = [
     { name: 'Tổng quan', href: '#overview' },
@@ -25,28 +27,32 @@ const navItems = [
 ];
 
 
-export default async function HotelDetail({params} : {params: Promise<{slug: string}>}) {
+export default async function HotelDetail({ params }: { params: Promise<{ slug: string }> }) {
     // Structure: slug.id
-    const {slug} = await params;
+    const { slug } = await params;
     const lastDotIndex = slug.lastIndexOf(".");
     if (lastDotIndex === -1) {
-        return notFound(); 
+        return notFound();
     }
 
     const hotelId = slug.slice(lastDotIndex + 1);
-    
+
     let hotel = null;
+    let commentPage = null;
     try {
-        hotel = await hotelService.getHotelById(hotelId);
+        [hotel, commentPage] = await Promise.all([
+            hotelService.getHotelById(hotelId),
+            commentService.getCommentByHotel(hotelId, 1, 5)
+        ]);
     } catch (error) {
         console.log("ERROR", error)
         return notFound();
     }
 
     if (!hotel) {
-        return notFound(); 
+        return notFound();
     }
-    
+
     return (
         <div className="px-0 md:px-60">
             <nav className="sticky top-18 z-10 bg-white">
@@ -63,44 +69,44 @@ export default async function HotelDetail({params} : {params: Promise<{slug: str
                     ))}
                 </div>
             </nav>
-            
+
             <div className="pt-30 px-4 py-8 gap-8">
                 <div className="lg:col-span-2 space-y-10">
 
                     {/* 1. Header & Breadcrumb */}
                     <section id="overview">
-                        <p className="text-sm content-center text-gray-600 flex gap-2"><EyeIcon/>
+                        <p className="text-sm content-center text-gray-600 flex gap-2"><EyeIcon />
                             <strong>{hotel.viewCount}</strong> người xem khách sạn</p>
                         <div className="flex items-center max-w-2xl gap-5 text-3xl font-semibold text-gray-900">{hotel.name}
                             <div>
                                 <span
                                     className="flex gap-1 items-center bg-yellow-100/50 text-yellow-700 font-bold px-2 py-1 rounded-lg text-sm">
-                                {hotel.avgRating} <Star className="h-full text-yellow-400" size={"1rem"}
-                                                        fill={"currentColor"}/>
+                                    {hotel.avgRating} <Star className="h-full text-yellow-400" size={"1rem"}
+                                        fill={"currentColor"} />
                                 </span>
                             </div>
 
                         </div>
                         <p className="text-sm text-gray-600 mt-3 flex gap-2"><MapPin
-                            className="text-red-700"/> {hotel.address.street}, {hotel.address.ward}, {hotel.address.province}
+                            className="text-red-700" /> {hotel.address.street}, {hotel.address.ward}, {hotel.address.province}
                         </p>
                         <div className="absolute w-70 top-36 right-60">
                             <CheckRoomBox checkPage={"hotel"} id={hotelId} viewCount={hotel.viewCount}
-                                          title={hotel.name} thumbnail={hotel.thumbnail}
-                                          address={hotel.address.street + ", " + hotel.address.ward + ", " + hotel.address.province}
-                                          avgRating={hotel.avgRating}/>
+                                title={hotel.name} thumbnail={hotel.thumbnail}
+                                address={hotel.address.street + ", " + hotel.address.ward + ", " + hotel.address.province}
+                                avgRating={hotel.avgRating} />
                         </div>
-                        
+
                     </section>
                     {/* 2. Hotel Slider*/}
                     <section className="rounded-2xl overflow-hidden">
-                        <HotelSlider images={hotel.images}/>
+                        <HotelSlider images={hotel.images} />
                     </section>
                     {/* 3. Hotel Utilities */}
                     <section id="utilities" className="flex gap-3 flex-wrap border-y py-8">
                         {hotel.hotelUtilities.map((item, index) => (
                             <div key={index} className="border px-3 py-4 rounded-lg flex items-center gap-3">
-                                <IconHotelUtility iconCode={item.iconCode}/>
+                                <IconHotelUtility iconCode={item.iconCode} />
                                 <span className="text-sm">{item.name}</span>
                             </div>
                         ))}
@@ -131,7 +137,7 @@ export default async function HotelDetail({params} : {params: Promise<{slug: str
                                         <TableCell className="font-medium">{r.name}</TableCell>
                                         <TableCell>{r.price.toLocaleString("vi-VN")}₫/đêm</TableCell>
                                         <TableCell>{r.capacity}</TableCell>
-                                        <TableCell><RoomType key={index} room={r}/></TableCell>
+                                        <TableCell><RoomType key={index} room={r} /></TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -147,7 +153,7 @@ export default async function HotelDetail({params} : {params: Promise<{slug: str
                                         <TableRow key={index}>
                                             <TableCell className="font-medium">{r.name}</TableCell>
                                             <TableCell>
-                                                <div dangerouslySetInnerHTML={{__html: r.description}}></div>
+                                                <div dangerouslySetInnerHTML={{ __html: r.description }}></div>
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -159,10 +165,44 @@ export default async function HotelDetail({params} : {params: Promise<{slug: str
                             các quy định trên mà không hoàn lại tiền phòng.
                         </p>
                     </section>
-                    {/* 7. Comments*/}
-                    <section id="price" className="border-t py-8">
-                        <p className="text-lg font-semibold mb-2">Đánh giá</p>
+                    {/* 7. Comments */}
+                    <section id="rating" className="border-t py-8">
+                        <p className="text-lg font-semibold mb-6">Đánh giá ({commentPage?.totalElements || 0})</p>
 
+                        {commentPage?.content && commentPage.content.length > 0 ? (
+                            <div className="space-y-6">
+                                {commentPage.content.map((comment: CommentResponse, index: number) => (
+                                    <div key={index} className="border-b pb-6 last:border-0">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600 uppercase">
+                                                {comment.user?.username.charAt(0) || "U"}
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-sm">{comment.user?.username || "Người dùng ẩn danh"}</p>
+                                                <div className="flex items-center gap-1 mt-1">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star
+                                                            key={i}
+                                                            size="12px"
+                                                            fill={i < (comment.rating || 5) ? "currentColor" : "none"}
+                                                            className={i < (comment.rating || 5) ? "text-yellow-400" : "text-gray-300"}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-gray-400 ml-auto">
+                                                {comment.updatedAt ? new Date(comment.updatedAt).toLocaleDateString("vi-VN") : ""}
+                                            </span>
+                                        </div>
+                                        <p className="text-gray-700 text-sm mt-3 leading-relaxed">
+                                            {comment.content}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500 text-sm italic">Chưa có đánh giá nào cho khách sạn này.</p>
+                        )}
                     </section>
                 </div>
 
