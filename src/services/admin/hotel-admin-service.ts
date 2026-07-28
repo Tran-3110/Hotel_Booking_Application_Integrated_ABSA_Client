@@ -12,6 +12,7 @@ import {
     UpdateActiveRoomTypeResponse
 } from "@/common/types/admin/hotel-detail";
 import {HotelStatus} from "@/common/types/hotel";
+import {AdminCommentResponse} from "@/common/types/admin/comment";
 
 export interface UpdateHotelInfoRequest {
     id: string;
@@ -104,6 +105,18 @@ export const hotelAdminService = {
     },
     changeHotelOwner: async (req: {hotelId: string, username: string}): Promise<OwnerResponse> => {
         const res = await apiClient.patch(`/admin/hotels/owner`, req)
+        return res.data
+    },
+    getHotelComments: async (hotelId: string, page: number, size: number): Promise<PageResponse<AdminCommentResponse>> => {
+        const res = await apiClient.get(`/admin/hotels/comments/${hotelId}`, {
+            params: {
+                page, size
+            }
+        })
+        return res.data
+    },
+    toggleCommentStatus: async (id: string, active: boolean): Promise<boolean> => {
+        const res = await apiClient.patch(`/admin/hotels/comments/active/${id}`, active)
         return res.data
     }
 }

@@ -9,6 +9,7 @@ import HotelDetailModal from "@/components/admin/hotel-detail-modal";
 import {Button} from "@/components/ui/button";
 import AddHotelModal from "@/components/admin/add-hotel";
 import {Input} from "@/components/ui/input";
+import HotelCommentsModal from "@/components/admin/comment-modal";
 
 export default function HotelManagement() {
     const [hotels, setHotels] = useState<GetAdminSnapshotHotelResponse[]>([]);
@@ -25,8 +26,11 @@ export default function HotelManagement() {
 
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+    const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
+    
     const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
-
+    const [selectNameHotel, setSelectNameHotel] = useState<string | null>(null);
+    
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedSearch(searchTerm);
@@ -58,6 +62,12 @@ export default function HotelManagement() {
         setSelectedHotelId(id);
         setIsModalOpen(true);
     };
+    
+    const handleReadCommentClick = (id: string, name: string) => {
+        setSelectedHotelId(id);
+        setSelectNameHotel(name);
+        setIsCommentModalOpen(true);
+    }
 
     return (
         <div className="p-6 mt-18 max-w-7xl mx-auto">
@@ -122,6 +132,8 @@ export default function HotelManagement() {
                             <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Lượt xem</th>
                             <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Đánh giá</th>
+                            
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -172,7 +184,8 @@ export default function HotelManagement() {
             </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center">
-            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${hotel.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            <span
+                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${hotel.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                 {hotel.isActive ? 'Hoạt động' : 'Tạm khóa'}
             </span>
                                     </td>
@@ -182,6 +195,14 @@ export default function HotelManagement() {
                                             className="text-purple-600 hover:text-purple-900 transition-colors cursor-pointer"
                                         >
                                             Chi tiết
+                                        </button>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button
+                                            onClick={() => handleReadCommentClick(hotel.id, hotel.name)}
+                                            className="text-purple-600 hover:text-purple-900 transition-colors cursor-pointer"
+                                        >
+                                            Xem đánh giá
                                         </button>
                                     </td>
                                 </tr>
@@ -211,6 +232,12 @@ export default function HotelManagement() {
                 onSuccess={() => {
                     fetchHotels();
                 }}
+            />
+            
+            <HotelCommentsModal isOpen={isCommentModalOpen} 
+                                hotelId={selectedHotelId} 
+                                hotelName={selectNameHotel} 
+                                onClose={() => setIsCommentModalOpen(false)}
             />
         </div>
     );

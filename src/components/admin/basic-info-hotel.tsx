@@ -17,6 +17,7 @@ import {HotelUtilityResponse} from "@/common/types/admin/hotel-detail";
 import {hotelAdminService, UpdateHotelInfoRequest} from "@/services/admin/hotel-admin-service";
 import Image from "next/image";
 import {cloudinary} from "@/services/upload-service";
+import {formatDate} from "@/common/utils/format";
 
 export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
     hotelId: string,
@@ -275,9 +276,9 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
                         </div>
                         <div className="flex gap-4 text-xs text-gray-400 mt-2">
                             <span className="flex items-center gap-1"><CalendarDays
-                                className="w-3 h-3"/> Tạo: {formData.createdAt ? new Date(formData.createdAt).toLocaleDateString() : ""}</span>
+                                className="w-3 h-3"/> Tạo: {formData.createdAt ? formatDate(formData.createdAt) : ""}</span>
                             <span className="flex items-center gap-1"><CalendarDays
-                                className="w-3 h-3"/> Cập nhật: {formData.updatedAt ? new Date(formData.updatedAt).toLocaleDateString() : ""}</span>
+                                className="w-3 h-3"/> Cập nhật: {formData.updatedAt ? formatDate(formData.updatedAt) : ""}</span>
                         </div>
                     </div>
 
