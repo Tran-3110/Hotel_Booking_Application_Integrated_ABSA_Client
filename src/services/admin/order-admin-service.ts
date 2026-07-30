@@ -20,7 +20,7 @@ export const orderAdminService = {
     },
     changeStatus: async (id: string, status: OrderStatus): Promise<boolean> => {
         const res = await apiClient.patch(`/admin/orders/${id}/status`, {
-            status: status
+            orderStatus: status
         })
         return res.data
     }

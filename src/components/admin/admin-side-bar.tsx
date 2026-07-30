@@ -10,7 +10,7 @@ export default function AdminSideBar() {
     const navItems = [
         {
             name: 'Dashboard',
-            href: '/admin/dashboard',
+            href: '/admin',
             icon: LayoutDashboard
         },
         {
@@ -51,7 +51,7 @@ export default function AdminSideBar() {
             {/* Menu chính */}
             <div className="flex flex-col flex-1 space-y-2">
                 {navItems.map((item) => {
-                    const isActive = pathName.startsWith(item.href);
+                    const isActive = pathName === item.href;
 
                     return (
                         <Link
