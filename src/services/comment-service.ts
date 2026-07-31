@@ -6,5 +6,16 @@ export const commentService = {
     getCommentByHotel: async (id: string, page: number, size: number) => {
         const response = await apiClient.get<PageResponse<CommentResponse>>(`/comment/get/hotel/${id}`, { params: { page, size } })
         return response.data
+    },
+
+    insertComment: async (data: {
+        hotelId: string; 
+        userId: string;
+        content: string; 
+        rating: number;
+        parentId?: string
+    }) => {
+        const response = await apiClient.post(`/comment/upload`, data);
+        return response.data;
     }
 }

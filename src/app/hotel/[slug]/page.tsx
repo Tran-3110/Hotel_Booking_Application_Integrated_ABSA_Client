@@ -17,6 +17,7 @@ import { notFound } from "next/navigation";
 import CheckRoomBox from "@/components/hotel/check-room-box";
 import { commentService } from "@/services/comment-service";
 import { CommentResponse } from "@/common/types/comment";
+import CommentForm from "@/components/hotel/send-comment";
 
 const navItems = [
     { name: 'Tổng quan', href: '#overview' },
@@ -168,6 +169,8 @@ export default async function HotelDetail({ params }: { params: Promise<{ slug: 
                     {/* 7. Comments */}
                     <section id="rating" className="border-t py-8">
                         <p className="text-lg font-semibold mb-6">Đánh giá ({commentPage?.totalElements || 0})</p>
+
+                        <CommentForm hotelId={hotelId} />
 
                         {commentPage?.content && commentPage.content.length > 0 ? (
                             <div className="space-y-6">
