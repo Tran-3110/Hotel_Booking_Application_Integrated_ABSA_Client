@@ -16,8 +16,7 @@ import { hotelService } from "@/services/hotel-service";
 import { notFound } from "next/navigation";
 import CheckRoomBox from "@/components/hotel/check-room-box";
 import { commentService } from "@/services/comment-service";
-import { CommentResponse } from "@/common/types/comment";
-import CommentForm from "@/components/hotel/send-comment";
+import CommentSection from "@/components/hotel/comment-section";
 
 const navItems = [
     { name: 'Tổng quan', href: '#overview' },
@@ -27,15 +26,15 @@ const navItems = [
     { name: 'Đánh giá', href: '#rating' },
 ];
 
-
-export default async function HotelDetail({ params }: { params: Promise<{ slug: string }> }) {
-    // Structure: slug.id
+export default async function HotelDetail({
+    params,
+}: {
+    params: Promise<{ slug: string }>;
+    // searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
     const { slug } = await params;
     const lastDotIndex = slug.lastIndexOf(".");
-    if (lastDotIndex === -1) {
-        return notFound();
-    }
-
+    if (lastDotIndex === -1) return notFound();
     const hotelId = slug.slice(lastDotIndex + 1);
 
     let hotel = null;
@@ -43,12 +42,14 @@ export default async function HotelDetail({ params }: { params: Promise<{ slug: 
     try {
         [hotel, commentPage] = await Promise.all([
             hotelService.getHotelById(hotelId),
-            commentService.getCommentByHotel(hotelId, 1, 5)
+            commentService.getCommentByHotel(hotelId, 0, 5)
         ]);
     } catch (error) {
         console.log("ERROR", error)
         return notFound();
     }
+
+    if (!hotel) return notFound();
 
     if (!hotel) {
         return notFound();
@@ -97,12 +98,13 @@ export default async function HotelDetail({ params }: { params: Promise<{ slug: 
                                 address={hotel.address.street + ", " + hotel.address.ward + ", " + hotel.address.province}
                                 avgRating={hotel.avgRating} />
                         </div>
-
                     </section>
+
                     {/* 2. Hotel Slider*/}
                     <section className="rounded-2xl overflow-hidden">
                         <HotelSlider images={hotel.images} />
                     </section>
+
                     {/* 3. Hotel Utilities */}
                     <section id="utilities" className="flex gap-3 flex-wrap border-y py-8">
                         {hotel.hotelUtilities.map((item, index) => (
@@ -112,6 +114,7 @@ export default async function HotelDetail({ params }: { params: Promise<{ slug: 
                             </div>
                         ))}
                     </section>
+
                     {/* 4. Description */}
                     <section className="prose max-w-none">
                         <p className="text-lg font-semibold mb-2">Giới thiệu</p>
@@ -119,6 +122,7 @@ export default async function HotelDetail({ params }: { params: Promise<{ slug: 
                             {hotel.description}
                         </p>
                     </section>
+
                     {/* 5. Room & Price */}
                     <section id="price" className="border-y py-8">
                         <p className="text-lg font-semibold mb-2">Giá cả và Phòng</p>
@@ -144,6 +148,7 @@ export default async function HotelDetail({ params }: { params: Promise<{ slug: 
                             </TableBody>
                         </Table>
                     </section>
+
                     {/* 6. Regulation */}
                     <section id="regulation" className="prose max-w-none">
                         <p className="text-lg font-semibold mb-4">Quy định chung</p>
@@ -166,50 +171,12 @@ export default async function HotelDetail({ params }: { params: Promise<{ slug: 
                             các quy định trên mà không hoàn lại tiền phòng.
                         </p>
                     </section>
+
                     {/* 7. Comments */}
                     <section id="rating" className="border-t py-8">
-                        <p className="text-lg font-semibold mb-6">Đánh giá ({commentPage?.totalElements || 0})</p>
-
-                        <CommentForm hotelId={hotelId} />
-
-                        {commentPage?.content && commentPage.content.length > 0 ? (
-                            <div className="space-y-6">
-                                {commentPage.content.map((comment: CommentResponse, index: number) => (
-                                    <div key={index} className="border-b pb-6 last:border-0">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600 uppercase">
-                                                {comment.user?.username.charAt(0) || "U"}
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-sm">{comment.user?.username || "Người dùng ẩn danh"}</p>
-                                                <div className="flex items-center gap-1 mt-1">
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <Star
-                                                            key={i}
-                                                            size="12px"
-                                                            fill={i < (comment.rating || 5) ? "currentColor" : "none"}
-                                                            className={i < (comment.rating || 5) ? "text-yellow-400" : "text-gray-300"}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <span className="text-xs text-gray-400 ml-auto">
-                                                {comment.updatedAt ? new Date(comment.updatedAt).toLocaleDateString("vi-VN") : ""}
-                                            </span>
-                                        </div>
-                                        <p className="text-gray-700 text-sm mt-3 leading-relaxed">
-                                            {comment.content}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-gray-500 text-sm italic">Chưa có đánh giá nào cho khách sạn này.</p>
-                        )}
+                        <CommentSection hotelId={hotelId} initialData={commentPage} />
                     </section>
                 </div>
-
-
             </div>
         </div>
     )
