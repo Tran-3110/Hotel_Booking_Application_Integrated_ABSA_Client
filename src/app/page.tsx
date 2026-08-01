@@ -1,25 +1,46 @@
 "use client"
 
 import { HomePageStatisticResponse } from "@/common/types/home";
+import { SuggestSearchResponse } from "@/common/types/suggest-search";
 import { imageLoader } from "@/common/utils/image-loader";
+import { transformTitleToSlug } from "@/common/utils/slug";
 import { Footer } from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ReduxState } from "@/constants/redux-state";
 import { getHomePageData } from "@/services/home-service";
+import { suggestSearch } from "@/services/search-service";
+import {
+    setKeyword,
+    setMaxPrice,
+    setMinPrice,
+    setStarCount,
+} from "@/store/slices/searchSlice";
 import { ArrowRight, Building2, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import {transformTitleToSlug} from "@/common/utils/slug";
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function Home() {
-    const [data, setData] = useState<HomePageStatisticResponse | null>(null)
-    const router = useRouter()
+    const [data, setData] = useState<HomePageStatisticResponse | null>(null);
+    const router = useRouter();
+    const dispatch = useDispatch();
+
+    // Lấy tất cả state lọc từ Redux Store
+    const { keyword, starCount, minPrice, maxPrice } = useSelector(
+        (state: ReduxState) => state.searchState
+    );
+
+    // Local State cho dropdown gợi ý địa điểm
+    const [results, setResults] = useState<SuggestSearchResponse[]>([]);
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         const fetchHomeData = async () => {
             try {
@@ -28,13 +49,71 @@ export default function Home() {
             } catch (error) {
                 console.error("Lỗi khi tải dữ liệu trang chủ:", error);
             }
-        }
+        };
         fetchHomeData();
-    }, [])
+    }, []);
+
+    // 1. Đóng dropdown gợi ý khi click ra ngoài
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // 2. Debounce gợi ý tìm kiếm theo keyword từ Redux
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            const handleSuggestSearch = async () => {
+                if (keyword.trim().length > 3) {
+                    const suggestData = await suggestSearch(keyword);
+                    setResults(suggestData);
+                }
+            };
+            handleSuggestSearch();
+        }, 1100);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [keyword]);
+
+    // 3. Xử lý hành động bấm nút Tìm kiếm
+    const handleSearch = (selectedItem?: SuggestSearchResponse) => {
+        if((minPrice != "" && Number(minPrice) <= 0)  || (maxPrice != "" && Number(maxPrice) < 0)) {
+            alert("Khoảng giá phải lớn hơn 0.")
+            return;
+        }
+        if(minPrice != "" && maxPrice != "" && Number(maxPrice) <= Number(minPrice)) {
+            alert("Khoảng giá không hợp lệ. Vui lòng nhập lại!")
+            return;
+        }
+        
+        const params = new URLSearchParams();
+
+        // Từ khóa tìm kiếm
+        const keywordToUse = selectedItem
+            ? (selectedItem.display_name || selectedItem.name || selectedItem.address?.city || "Chưa xác định địa điểm.")
+            : keyword;
+
+        if (keywordToUse) params.append("q", keywordToUse);
+
+        // Tọa độ vị trí (nếu chọn từ dropdown hoặc dùng kết quả đầu tiên)
+        const locationData = selectedItem || results[0];
+        if (locationData) {
+            if (locationData.lat) params.append("lat", locationData.lat);
+            if (locationData.lon) params.append("lon", locationData.lon);
+            if (locationData.boundingbox) {
+                params.append("bbox", locationData.boundingbox.join(","));
+            }
+        }
+
+        router.push(`/search?${params.toString()}`);
+    };
 
     return (
         <div>
-            
             <section className="relative w-full h-screen">
                 <div className="absolute top-0 left-0 inset-0 z-1 bg-black opacity-50"></div>
                 <div className="absolute top-0 left-0 inset-0 z-0">
@@ -62,26 +141,85 @@ export default function Home() {
                     <div className="w-full max-w-6xl z-3">
                         <div className="bg-background m-6 mx-auto rounded-xl p-4 shadow-lg">
                             <div className="flex flex-col md:flex-row justify-center gap-4">
-                                <div className="flex-2 space-y-2">
+
+                                <div className="flex-2 space-y-2 relative" ref={containerRef}>
                                     <p className="font-semibold text-sm">Địa điểm</p>
-                                    <InputGroup>
-                                        <InputGroupInput placeholder="Bạn muốn đi đâu?" />
-                                        <InputGroupAddon>
-                                            <MapPin size={18} />
-                                        </InputGroupAddon>
-                                    </InputGroup>
+                                    <div className="relative">
+                                        <Input
+                                            value={keyword}
+                                            placeholder="Bạn muốn đi đâu?"
+                                            className="h-8 pr-9"
+                                            onFocus={() => {
+                                                if (results.length > 0) setIsOpen(true);
+                                            }}
+                                            onChange={(e) => {
+                                                if (e.target.value === "") {
+                                                    setResults([]);
+                                                    setIsOpen(false);
+                                                } else {
+                                                    setIsOpen(true);
+                                                }
+                                                dispatch(setKeyword(e.target.value));
+                                            }}
+                                        />
+                                        <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                    </div>
+
+                                    {isOpen && results.length > 0 && (
+                                        <div className="w-full absolute left-0 z-50 flex flex-col overflow-hidden border bg-background mt-2 rounded-xl shadow-md max-h-60 overflow-y-auto">
+                                            {results.map((result, index) => {
+                                                const label = result.display_name || result.name || result.address?.city || "Chưa xác định địa điểm.";
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        className="hover:bg-accent/50 cursor-pointer border-b last:border-0 p-2.5 transition-colors"
+                                                        onClick={() => {
+                                                            dispatch(setKeyword(label));
+                                                            setIsOpen(false);
+                                                            handleSearch(result);
+                                                        }}
+                                                    >
+                                                        <div className="flex items-start gap-2.5">
+                                                            <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                                                            <div className="flex flex-col flex-1 gap-0.5">
+                                                                <span className="font-medium text-sm leading-tight">
+                                                                    {label}
+                                                                </span>
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    {result.address?.country}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex-2 space-y-2">
                                     <p className="font-semibold text-sm">Mức giá</p>
                                     <div className="flex gap-2 items-center">
-                                        <Input placeholder="Từ" type="number" />
+                                        <Input
+                                            placeholder="Từ"
+                                            type="number"
+                                            value={minPrice}
+                                            onChange={(e) => dispatch(setMinPrice(e.target.value))}
+                                        />
                                         <div className="w-3 bg-foreground h-px"></div>
-                                        <Input placeholder="Đến" type="number" />
+                                        <Input
+                                            placeholder="Đến"
+                                            type="number"
+                                            value={maxPrice}
+                                            onChange={(e) => dispatch(setMaxPrice(e.target.value))}
+                                        />
                                     </div>
                                 </div>
                                 <div className="flex-1 space-y-2">
                                     <p className="font-semibold text-sm">Đánh giá</p>
-                                    <Select>
+                                    <Select
+                                        value={String(starCount)}
+                                        onValueChange={(value) => dispatch(setStarCount(Number(value)))}
+                                    >
                                         <SelectTrigger className="w-full h-10">
                                             <div className="flex items-center gap-2">
                                                 <Star className="h-4 w-4 text-muted-foreground" />
@@ -91,7 +229,7 @@ export default function Home() {
                                         <SelectContent>
                                             <SelectGroup>
                                                 <SelectLabel>Đánh giá</SelectLabel>
-                                                <SelectItem value="all">Mọi mức đánh giá</SelectItem>
+                                                <SelectItem value="1">Mọi mức đánh giá</SelectItem>
                                                 <SelectItem value="5">5 Sao (Xuất sắc)</SelectItem>
                                                 <SelectItem value="4">Từ 4 Sao trở lên</SelectItem>
                                             </SelectGroup>
@@ -101,6 +239,10 @@ export default function Home() {
 
                                 <div className="flex items-end">
                                     <Button
+                                        onClick={() => {
+                                            setIsOpen(false);
+                                            handleSearch();
+                                        }}
                                         variant={"default"}
                                         className="px-6 py-5 cursor-pointer bg-indigo-700 hover:bg-indigo-800 text-white w-full md:w-auto"
                                     >

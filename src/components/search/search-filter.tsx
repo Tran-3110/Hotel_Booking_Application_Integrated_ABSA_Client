@@ -6,7 +6,7 @@ import {changeSearchFilter, setMaxPrice, setMinPrice, setStarCount} from "@/stor
 import {useState} from "react";
 
 export default function SearchFilter() {
-    const {minPrice, maxPrice} = useSelector((state: ReduxState) => state.searchState);
+    const {minPrice, maxPrice, starCount} = useSelector((state: ReduxState) => state.searchState);
     const [error, setError] = useState<string>("");
     const dispatch = useDispatch();
     return (
@@ -20,10 +20,10 @@ export default function SearchFilter() {
                 <div>
                     <span className="block font-semibold mb-3 text-gray-600">Đánh giá</span>
                     <div className="flex flex-col gap-3">
-                        {[5, 4, 3, 2].map((starCount) => (
-                            <div key={starCount} className="flex items-center gap-3">
-                                <input type="radio" name="star-filter" className="scale-150 my-1"
-                                       onChange={() => dispatch(setStarCount(starCount))}/>
+                        {[5, 4, 3, 2].map((star) => (
+                            <div key={star} className="flex items-center gap-3">
+                                <input type="radio" name="star-filter" className="scale-150 my-1" value={star} checked={star === starCount}
+                                       onChange={() => dispatch(setStarCount(star))}/>
                                 <button
                                     className={`flex items-center gap-2 group transition-all `}
                                 >
@@ -32,13 +32,13 @@ export default function SearchFilter() {
                                             <Star
                                                 key={i}
                                                 size={16}
-                                                fill={i < starCount ? "currentColor" : "none"}
-                                                className={i < starCount ? "text-yellow-500" : "text-gray-300"}
+                                                fill={i < star ? "currentColor" : "none"}
+                                                className={i < star ? "text-yellow-500" : "text-gray-300"}
                                             />
                                         ))}
                                     </div>
                                     <span className={`text-xs font-medium`}>
-                                    {starCount === 5 ? "" : "trở lên"}
+                                    {star === 5 ? "" : "trở lên"}
                                 </span>
                                 </button>
                             </div>
