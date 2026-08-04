@@ -106,6 +106,7 @@ export function NavBar() {
                             "relative cursor-pointer transition-colors",
                             !isScrolled && "text-foreground dark:text-white hover:bg-black/10 dark:hover:bg-white/10"
                         )}
+                        onClick={() => router.push("/register-owner")}
                     >
                         Hợp tác cùng chúng tôi
                     </Button>

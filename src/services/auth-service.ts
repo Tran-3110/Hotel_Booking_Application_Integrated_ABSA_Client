@@ -1,6 +1,7 @@
 import { apiUrl } from "@/common/constants/api-url"
 import { AuthResponse } from "@/common/types/auth"
 import { LoginValues } from "@/schemas/login-schema"
+import { RegisterOwnerValues } from "@/schemas/register-owner-schema"
 import { RegisterValues } from "@/schemas/register-schema"
 import axios from 'axios'
 
@@ -15,3 +16,8 @@ export const handleRegister = async (data: RegisterValues) => {
     const response = await axios.post<AuthResponse>(`${apiUrl}/auth/register`, { email, username, password })
     return response.data
 }
+
+export const handleRegisterOwner = async (data: RegisterOwnerValues) => {
+    const response = await axios.post<AuthResponse>(`${apiUrl}/auth/register-owner`, data);
+    return response.data;
+};
