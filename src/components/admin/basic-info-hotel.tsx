@@ -1,30 +1,42 @@
 'use client';
 
-import React, {useState, useEffect, useRef} from 'react';
-import {MapPin, ShieldCheck, Wifi, CalendarDays, User, Image as ImageIcon, Plus, Trash2} from 'lucide-react';
-import {useDispatch, useSelector} from 'react-redux';
+import React, { useState, useEffect, useRef } from 'react';
+import { MapPin, ShieldCheck, Wifi, CalendarDays, User, Image as ImageIcon, Plus, Trash2, AlertTriangle } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
 import MultiUploadBox from "@/components/upload/multi-upload-box";
-import {FilePreview} from "@/common/types/file";
+import { FilePreview } from "@/common/types/file";
 import {
     setSavingStatus,
     updateAddressField,
     updateBasicField,
     resetChanges,
-    setHotelUtilitiesFormData, setHotelRegulation, setInitialData
+    setHotelUtilitiesFormData,
+    setHotelRegulation,
+    setInitialData
 } from "@/store/slices/editHotelSlice";
-import {ReduxState} from "@/constants/redux-state";
-import {HotelUtilityResponse} from "@/common/types/admin/hotel-detail";
-import {hotelAdminService, UpdateHotelInfoRequest} from "@/services/admin/hotel-admin-service";
+import { ReduxState } from "@/constants/redux-state";
+import { HotelUtilityResponse } from "@/common/types/admin/hotel-detail";
+import { hotelAdminService } from "@/services/admin/hotel-admin-service";
+import { hotelOwnerService } from "@/services/owner/hotel-owner-service"; // Import thêm Owner Service
 import Image from "next/image";
-import {cloudinary} from "@/services/upload-service";
-import {formatDate} from "@/common/utils/format";
+import { cloudinary } from "@/services/upload-service";
+import { formatDate } from "@/common/utils/format";
+import { UpdateHotelInfoRequest } from "@/common/types/request/hotel-management";
+import { UserRole } from "@/common/enums/user";
+import {HotelStatus} from "@/common/enums/hotel";
 
-export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
+export default function BasicInfoTab({ hotelId, role, onClose, onSuccess }: {
     hotelId: string,
+    role: UserRole,
     onClose: () => void,
     onSuccess?: () => void
 }) {
     const dispatch = useDispatch();
+
+    // Xác định xem có phải role Owner hay không
+    const isOwner = role === UserRole.OWNER;
+    // Chọn service tương ứng theo role
+    const currentService = isOwner ? hotelOwnerService : hotelAdminService;
 
     const {
         data: formData,
@@ -70,7 +82,8 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
     useEffect(() => {
         const fetchHotelUtilities = async () => {
             try {
-                const data = await hotelAdminService.getHotelUtilities();
+                // Gọi qua service tương ứng theo role
+                const data = await currentService.getHotelUtilities();
                 setHotelUtilities(data);
             } catch (error) {
                 console.error(error);
@@ -78,7 +91,7 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
         };
 
         fetchHotelUtilities();
-    }, []);
+    }, [role]);
 
     if (!formData) return null;
 
@@ -124,17 +137,17 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
     const handleAddRegulation = () => {
         const currentRegulations = formData.hotelRegulations || [];
         if (currentRegulations.some(r => !r.name || r.name.trim() === "")) {
-            window.alert("Vui lòng điền đầy đủ thông tin quy định hiện có!")
+            window.alert("Vui lòng điền đầy đủ thông tin quy định hiện có!");
             return;
         }
 
-        const newRegulation = {name: "", description: ""};
+        const newRegulation = { name: "", description: "" };
         dispatch(setHotelRegulation([...currentRegulations, newRegulation]));
     };
 
     const handleUpdateRegulation = (index: number, field: 'name' | 'description', value: string) => {
         const currentRegulations = [...(formData.hotelRegulations || [])];
-        currentRegulations[index] = {...currentRegulations[index], [field]: value};
+        currentRegulations[index] = { ...currentRegulations[index], [field]: value };
         dispatch(setHotelRegulation(currentRegulations));
     };
 
@@ -153,18 +166,18 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
             window.alert("Có tên nội quy đang bị bỏ trống. Vui lòng kiểm tra lại!");
             return;
         }
-        
+
         dispatch(setSavingStatus(true));
         try {
             const existingUrls = hotelImages.filter(item => !item.file).map(item => item.url);
             const newFilesToUpload = hotelImages.filter(item => item.file);
 
-            let newUploadedImages: {id: string, url: string}[] = [];
+            let newUploadedImages: { id: string, url: string }[] = [];
             if (newFilesToUpload.length > 0) {
                 const sigData = await cloudinary.getSignature(`homebooking-hotel`);
                 const uploadPromises = newFilesToUpload.map(async (item) => {
                     const res = await cloudinary.uploadSingleImage(item.file!, sigData);
-                    return {id: item.id, url: res.secure_url};
+                    return { id: item.id, url: res.secure_url };
                 });
                 newUploadedImages = await Promise.all(uploadPromises);
             }
@@ -202,7 +215,7 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
                 hotelRegulations: formData.hotelRegulations || []
             };
 
-            const res = await hotelAdminService.updateHotelInfo(requestData);
+            const res = await currentService.updateHotelInfo(requestData);
             dispatch(setInitialData(res));
 
             if (onSuccess) onSuccess();
@@ -214,18 +227,46 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
             dispatch(setSavingStatus(false));
         }
     };
-    
+
+    // Thao tác đổi trạng thái Active (Dành cho Admin)
     const handleChangeActive = async (active: boolean) => {
-        const res = await hotelAdminService.updateActive({
-            id: hotelId, active: active
-        })
-        if(res.success) {
-            dispatch(updateBasicField({field: "isActive", value: res.active}))
-            if (onSuccess) onSuccess();
-        } else {
-            window.alert("Đã có lỗi xảy ra khi thay đổi trạng thái khách sạn!")
+        try {
+            const res = await hotelAdminService.updateActive({
+                id: hotelId, active: active
+            });
+            if (res.success) {
+                dispatch(updateBasicField({ field: "isActive", value: res.active }));
+                if (onSuccess) onSuccess();
+            } else {
+                window.alert("Đã có lỗi xảy ra khi thay đổi trạng thái khách sạn!");
+            }
+        } catch (error) {
+            console.error("Lỗi thay đổi trạng thái active:", error);
         }
-    }
+    };
+
+    // Thao tác xóa / vô hiệu hóa khách sạn (Dành cho Owner)
+    const handleDeleteHotelByOwner = async () => {
+        if (window.confirm("Bạn có chắc chắn muốn ngưng hoạt động/xóa khách sạn này? Khách hàng sẽ không thể tìm thấy khách sạn của bạn nữa.")) {
+            try {
+                const res = await hotelOwnerService.updateActive({
+                    id: hotelId,
+                    active: false
+                });
+                if (res.success) {
+                    dispatch(updateBasicField({ field: "isActive", value: res.active }));
+                    window.alert("Khách sạn đã được dừng hoạt động thành công.");
+                    if (onSuccess) onSuccess();
+                    onClose();
+                } else {
+                    window.alert("Không thể thực hiện thao tác xóa. Vui lòng kiểm tra lại!");
+                }
+            } catch (error) {
+                console.error("Lỗi khi Owner thực hiện xóa khách sạn:", error);
+                window.alert("Đã xảy ra lỗi khi ngưng hoạt động khách sạn!");
+            }
+        }
+    };
 
     return (
         <div className="flex flex-col h-full">
@@ -251,17 +292,16 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
                                        className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-purple-500"/>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái
-                                    (Status)</label>
-                                <select value={formData.status || "AVAILABLE"}
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái (Status)</label>
+                                <select value={formData.status || HotelStatus.AVAILABLE}
                                         onChange={(e) => dispatch(updateBasicField({
                                             field: 'status',
                                             value: e.target.value
                                         }))}
                                         className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-purple-500">
-                                    <option value="AVAILABLE">Available</option>
-                                    <option value="FULL">Full</option>
-                                    <option value="UNAVAILABLE">Unavailable</option>
+                                    <option value={HotelStatus.AVAILABLE}>Available</option>
+                                    <option value={HotelStatus.FULL}>Full</option>
+                                    <option value={HotelStatus.UNAVAILABLE}>Unavailable</option>
                                 </select>
                             </div>
                         </div>
@@ -290,8 +330,7 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
                             </h3>
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Đường / Số
-                                        nhà</label>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Đường / Số nhà</label>
                                     <input
                                         type="text"
                                         value={formData.address?.street || ''}
@@ -305,8 +344,7 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Phường /
-                                            Xã</label>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Phường / Xã</label>
                                         <input
                                             type="text"
                                             value={formData.address?.ward || ''}
@@ -318,8 +356,7 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Tỉnh / Thành
-                                            phố</label>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Tỉnh / Thành phố</label>
                                         <input
                                             type="text"
                                             value={formData.address?.province || ''}
@@ -334,8 +371,7 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Vĩ độ
-                                            (Latitude)</label>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Vĩ độ (Latitude)</label>
                                         <input
                                             type="number"
                                             step="any"
@@ -348,8 +384,7 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Kinh độ
-                                            (Longitude)</label>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Kinh độ (Longitude)</label>
                                         <input
                                             type="number"
                                             step="any"
@@ -366,10 +401,8 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
                         </div>
 
                         {/* Phần Owner */}
-                        <div
-                            className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-start gap-4">
-                            <div
-                                className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
+                        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-start gap-4">
+                            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden shrink-0 relative">
                                 {formData.owner?.avatarUrl ? (
                                     <Image
                                         fill
@@ -410,8 +443,7 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
                             className={`min-h-[50px] w-full bg-gray-50 rounded-xl p-3 flex flex-wrap gap-2 cursor-pointer border-2 transition-all flex-1 ${isUtilityDropdownOpen ? "border-emerald-200 bg-white shadow-sm" : "border-transparent"}`}
                         >
                             {(!formData.hotelUtilities || formData.hotelUtilities.length === 0) && (
-                                <div className="flex items-center px-1 text-gray-400 text-sm italic">Nhấp để chọn tiện
-                                    ích...</div>
+                                <div className="flex items-center px-1 text-gray-400 text-sm italic">Nhấp để chọn tiện ích...</div>
                             )}
 
                             {formData.hotelUtilities?.map(u => (
@@ -444,14 +476,13 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
                                     );
                                 })}
                                 {hotelUtilities.length === 0 && (
-                                    <div className="col-span-full text-center text-sm text-gray-400 py-2">Đang tải dữ
-                                        liệu...</div>
+                                    <div className="col-span-full text-center text-sm text-gray-400 py-2">Đang tải dữ liệu...</div>
                                 )}
                             </div>
                         )}
                     </div>
 
-                    {/* Quản lý Nội quy (Có thể sửa trực tiếp) */}
+                    {/* Quản lý Nội quy */}
                     <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm h-full flex flex-col">
                         <div className="flex items-center justify-between mb-3 border-b pb-2">
                             <h4 className="font-medium text-sm flex items-center gap-2">
@@ -523,19 +554,33 @@ export default function BasicInfoTab({hotelId, onClose, onSuccess}: {
 
             {/* Footer Tab 1 */}
             <div className="px-6 py-4 border-t border-gray-100 bg-white flex items-center justify-between shrink-0">
-                <label className="flex items-center cursor-pointer gap-2">
-                    <input
-                        type="checkbox"
-                        checked={formData.isActive || false}
-                        onChange={(e) => {
-                            if (confirm("Xác nhận thay đổi trạng thái hoạt động của khách sạn?")) {
-                                handleChangeActive(e.target.checked);
-                            }
-                        }}
-                        className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-                    />
-                    <span className="text-sm font-medium text-gray-700">Trạng thái Active</span>
-                </label>
+                {/* Phân quyền phần Active / Xóa theo role */}
+                <div>
+                    {isOwner ? (
+                        <button
+                            type="button"
+                            onClick={handleDeleteHotelByOwner}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors cursor-pointer"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            Xóa / Ngưng hoạt động
+                        </button>
+                    ) : (
+                        <label className="flex items-center cursor-pointer gap-2">
+                            <input
+                                type="checkbox"
+                                checked={formData.isActive || false}
+                                onChange={(e) => {
+                                    if (confirm("Xác nhận thay đổi trạng thái hoạt động của khách sạn?")) {
+                                        handleChangeActive(e.target.checked);
+                                    }
+                                }}
+                                className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Trạng thái Active</span>
+                        </label>
+                    )}
+                </div>
 
                 <div className="flex items-center gap-3">
                     <button

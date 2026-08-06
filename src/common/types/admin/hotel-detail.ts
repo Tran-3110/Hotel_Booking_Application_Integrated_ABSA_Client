@@ -1,6 +1,5 @@
-import {HotelStatus} from "@/common/types/hotel";
-
-export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+import {HotelStatus} from "@/common/enums/hotel";
+import {Gender} from "@/common/enums/user";
 
 export interface OwnerResponse {
     id: string;

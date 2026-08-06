@@ -4,30 +4,36 @@ import React, { useState, useEffect } from 'react';
 import { X, MessageSquare, Star, User, Calendar, CheckCircle2, XCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { hotelAdminService } from "@/services/admin/hotel-admin-service";
+import { hotelOwnerService } from "@/services/owner/hotel-owner-service";
 import PaginationCustom from "@/components/pagination-custom";
 import { PageResponse } from "@/common/types/page";
 import { AdminCommentResponse } from "@/common/types/admin/comment";
-import {formatDate} from "@/common/utils/format";
+import { formatDate } from "@/common/utils/format";
+import { UserRole } from "@/common/enums/user";
 
 interface HotelCommentsModalProps {
     isOpen: boolean;
     hotelId: string | null;
+    role: UserRole;
     hotelName: string | null;
     onClose: () => void;
 }
 
-export default function HotelCommentsModal({ isOpen, hotelId, hotelName, onClose }: HotelCommentsModalProps) {
+export default function HotelCommentsModal({ isOpen, hotelId, hotelName, role, onClose }: HotelCommentsModalProps) {
     const [commentsPage, setCommentsPage] = useState<PageResponse<AdminCommentResponse> | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [updatingId, setUpdatingId] = useState<string | null>(null); 
+    const [updatingId, setUpdatingId] = useState<string | null>(null);
     const [page, setPage] = useState<number>(0);
     const [size] = useState<number>(10);
+
+    const isOwner = role === UserRole.OWNER;
+    const currentService = isOwner ? hotelOwnerService : hotelAdminService;
 
     const fetchComments = async () => {
         if (!hotelId) return;
         setIsLoading(true);
         try {
-            const data = await hotelAdminService.getHotelComments(hotelId, page, size);
+            const data = await currentService.getHotelComments(hotelId, page, size);
             setCommentsPage(data || null);
         } catch (error) {
             window.alert("Không thể tải danh sách đánh giá. Vui lòng thử lại!");
@@ -44,11 +50,11 @@ export default function HotelCommentsModal({ isOpen, hotelId, hotelName, onClose
         }
 
         fetchComments();
-    }, [isOpen, hotelId, page]);
-    
+    }, [isOpen, hotelId, page, role]);
+
     const handleToggleStatus = async (commentId: string, currentStatus: boolean) => {
         if(!confirm("Bạn có muốn ẩn đánh giá?")) return;
-        
+
         setUpdatingId(commentId);
         try {
             const success = await hotelAdminService.toggleCommentStatus(commentId, !currentStatus);
@@ -197,33 +203,35 @@ export default function HotelCommentsModal({ isOpen, hotelId, hotelName, onClose
                                             </div>
                                         </div>
 
-                                        {/* Nút Ẩn / Hiện Comment */}
-                                        <Button
-                                            suppressHydrationWarning
-                                            variant="outline"
-                                            size="sm"
-                                            disabled={updatingId === comment.id}
-                                            onClick={() => handleToggleStatus(comment.id, comment.isActive)}
-                                            className={`h-8 px-2.5 text-xs font-medium border transition-colors flex items-center gap-1.5 ${
-                                                comment.isActive
-                                                    ? 'border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300'
-                                                    : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300'
-                                            }`}
-                                        >
-                                            {updatingId === comment.id ? (
-                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                            ) : comment.isActive ? (
-                                                <>
-                                                    <EyeOff className="w-3.5 h-3.5" />
-                                                    Ẩn
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Eye className="w-3.5 h-3.5" />
-                                                    Hiện
-                                                </>
-                                            )}
-                                        </Button>
+                                        {/* Nút Ẩn / Hiện Comment (Chỉ hiển thị cho Admin) */}
+                                        {!isOwner && (
+                                            <Button
+                                                suppressHydrationWarning
+                                                variant="outline"
+                                                size="sm"
+                                                disabled={updatingId === comment.id}
+                                                onClick={() => handleToggleStatus(comment.id, comment.isActive)}
+                                                className={`h-8 px-2.5 text-xs font-medium border transition-colors flex items-center gap-1.5 ${
+                                                    comment.isActive
+                                                        ? 'border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300'
+                                                        : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300'
+                                                }`}
+                                            >
+                                                {updatingId === comment.id ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                ) : comment.isActive ? (
+                                                    <>
+                                                        <EyeOff className="w-3.5 h-3.5" />
+                                                        Ẩn
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Eye className="w-3.5 h-3.5" />
+                                                        Hiện
+                                                    </>
+                                                )}
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
 
