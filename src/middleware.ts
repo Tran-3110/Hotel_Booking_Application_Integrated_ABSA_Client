@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import {UserRole} from "@/common/enums/user";
 
 export function middleware(request: NextRequest) {
     const role = request.cookies.get('user_role')?.value;
@@ -11,7 +12,12 @@ export function middleware(request: NextRequest) {
         }
     }
     if (request.nextUrl.pathname.startsWith('/admin')) {
-        if (role !== 'ADMIN') {
+        if (role !== UserRole.ADMIN) {
+            return NextResponse.rewrite(new URL('/404', request.url));
+        }
+    }
+    if (request.nextUrl.pathname.startsWith('/owner')) {
+        if (role !== UserRole.OWNER) {
             return NextResponse.rewrite(new URL('/404', request.url));
         }
     }

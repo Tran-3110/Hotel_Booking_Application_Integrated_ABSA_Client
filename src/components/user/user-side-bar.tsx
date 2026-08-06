@@ -25,6 +25,12 @@ const navItems = [
         name: 'Trang Admin',
         href: '/admin',
         icon: ShieldCheck,
+    },
+    {
+        id: "owner",
+        name: 'Trang Chủ Khách Sạn',
+        href: '/owner/hotels',
+        icon: ShieldCheck,
     }
 ];
 
@@ -76,6 +82,10 @@ export default function UserSideBar() {
                     const isActive = pathName.startsWith(item.href);
                     
                     if (item.id === 'admin' && data?.role !== UserRole.ADMIN) {
+                        return null;
+                    }
+
+                    if (item.id === 'owner' && data?.role !== UserRole.OWNER) {
                         return null;
                     }
 
