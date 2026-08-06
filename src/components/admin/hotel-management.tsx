@@ -3,15 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import { GetAdminSnapshotHotelResponse } from "@/common/types/admin/snapshot-hotel";
 import { hotelAdminService } from "@/services/admin/hotel-admin-service";
+import { hotelOwnerService } from "@/services/owner/hotel-owner-service";
 import PaginationCustom from "@/components/pagination-custom";
 import { Plus } from "lucide-react";
 import HotelDetailModal from "@/components/admin/hotel-detail-modal";
-import {Button} from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import AddHotelModal from "@/components/admin/add-hotel";
-import {Input} from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import HotelCommentsModal from "@/components/admin/comment-modal";
+import { UserRole } from "@/common/enums/user";
 
-export default function HotelManagement() {
+interface HotelManagementProps {
+    role: UserRole;
+}
+
+export default function HotelManagement({ role }: HotelManagementProps) {
     const [hotels, setHotels] = useState<GetAdminSnapshotHotelResponse[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -27,10 +33,13 @@ export default function HotelManagement() {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
     const [isCommentModalOpen, setIsCommentModalOpen] = useState<boolean>(false);
-    
+
     const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
     const [selectNameHotel, setSelectNameHotel] = useState<string | null>(null);
-    
+
+    const isOwner = role === UserRole.OWNER;
+    const currentService = isOwner ? hotelOwnerService : hotelAdminService;
+
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedSearch(searchTerm);
@@ -44,7 +53,7 @@ export default function HotelManagement() {
     const fetchHotels = async () => {
         setLoading(true);
         try {
-            const res = await hotelAdminService.getHotelList(page, size, sortOrder, debouncedSearch);
+            const res = await currentService.getHotelList(page, size, sortOrder, debouncedSearch);
             setHotels(res.content);
             setTotalPages(res.totalPages);
         } catch (error) {
@@ -56,30 +65,37 @@ export default function HotelManagement() {
 
     useEffect(() => {
         fetchHotels();
-    }, [page, debouncedSearch, sortOrder]);
+    }, [page, debouncedSearch, sortOrder, role]);
 
     const handleEditClick = (id: string) => {
         setSelectedHotelId(id);
         setIsModalOpen(true);
     };
-    
+
     const handleReadCommentClick = (id: string, name: string) => {
         setSelectedHotelId(id);
         setSelectNameHotel(name);
         setIsCommentModalOpen(true);
-    }
+    };
 
     return (
         <div className="p-6 mt-18 max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Quản lý Khách sạn</h1>
-                    <p className="text-sm text-gray-500 mt-1">Xem, tìm kiếm và quản lý trạng thái các khách sạn trong hệ thống.</p>
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        {isOwner ? "Quản lý Khách sạn của tôi" : "Quản lý Khách sạn"}
+                    </h1>
+                    <p className="text-sm text-gray-500 mt-1">
+                        {isOwner
+                            ? "Xem, tìm kiếm và quản lý danh sách các khách sạn do bạn sở hữu."
+                            : "Xem, tìm kiếm và quản lý trạng thái các khách sạn trong hệ thống."
+                        }
+                    </p>
                 </div>
 
                 <Button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm active:scale-95"
+                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm active:scale-95 cursor-pointer"
                 >
                     <Plus className="w-5 h-5" />
                     Thêm khách sạn
@@ -108,12 +124,12 @@ export default function HotelManagement() {
 
                 <div className="w-full sm:w-auto">
                     <select suppressHydrationWarning
-                        className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-lg border bg-white cursor-pointer"
-                        value={sortOrder}
-                        onChange={(e) => {
-                            setSortOrder(e.target.value as 'createdAt,desc' | 'createdAt,asc');
-                            setPage(0);
-                        }}
+                            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-lg border bg-white cursor-pointer"
+                            value={sortOrder}
+                            onChange={(e) => {
+                                setSortOrder(e.target.value as 'createdAt,desc' | 'createdAt,asc');
+                                setPage(0);
+                            }}
                     >
                         <option value="createdAt,desc">Mới nhất trước</option>
                         <option value="createdAt,asc">Cũ nhất trước</option>
@@ -133,19 +149,18 @@ export default function HotelManagement() {
                             <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
                             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Đánh giá</th>
-                            
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                         {loading ? (
                             <tr>
-                                <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
+                                <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
                                     Đang tải dữ liệu...
                                 </td>
                             </tr>
                         ) : hotels.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
+                                <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
                                     Không tìm thấy khách sạn nào.
                                 </td>
                             </tr>
@@ -179,15 +194,15 @@ export default function HotelManagement() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {hotel.viewCount || 0} views
-            </span>
+                                        <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            {hotel.viewCount || 0} views
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center">
-            <span
-                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${hotel.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                {hotel.isActive ? 'Hoạt động' : 'Tạm khóa'}
-            </span>
+                                        <span
+                                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${hotel.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                            {hotel.isActive ? 'Hoạt động' : 'Tạm khóa'}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button
@@ -221,6 +236,7 @@ export default function HotelManagement() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 hotelId={selectedHotelId}
+                role={role}
                 onSuccess={() => {
                     fetchHotels();
                 }}
@@ -233,11 +249,13 @@ export default function HotelManagement() {
                     fetchHotels();
                 }}
             />
-            
-            <HotelCommentsModal isOpen={isCommentModalOpen} 
-                                hotelId={selectedHotelId} 
-                                hotelName={selectNameHotel} 
-                                onClose={() => setIsCommentModalOpen(false)}
+
+            <HotelCommentsModal
+                isOpen={isCommentModalOpen}
+                hotelId={selectedHotelId}
+                role={role}
+                hotelName={selectNameHotel}
+                onClose={() => setIsCommentModalOpen(false)}
             />
         </div>
     );

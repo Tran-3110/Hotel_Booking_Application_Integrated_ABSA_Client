@@ -1,37 +1,40 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import {X, Building2, Info, BedDouble, Eye, User} from 'lucide-react';
-import { useDispatch, useSelector } from 'react-redux';
-import { hotelAdminService } from '@/services/admin/hotel-admin-service';
-import { setInitialData, resetSlice } from '@/store/slices/editHotelSlice';
+import React, {useEffect, useState} from 'react';
+import {BedDouble, Building2, Eye, Info, User, X} from 'lucide-react';
+import {useDispatch, useSelector} from 'react-redux';
+import {hotelAdminService} from '@/services/admin/hotel-admin-service';
+import {resetSlice, setInitialData} from '@/store/slices/editHotelSlice';
 
 import BasicInfoTab from './basic-info-hotel';
 import {ReduxState} from "@/constants/redux-state";
 import RoomsTab from "@/components/admin/room-type";
 import OwnerTab from "@/components/admin/hotel-owner";
+import {UserRole} from "@/common/enums/user";
+import {hotelOwnerService} from "@/services/owner/hotel-owner-service";
 
 interface HotelDetailModalProps {
     isOpen: boolean;
+    role: UserRole;
     onClose: () => void;
     hotelId: string | null;
     onSuccess?: () => void;
 }
 
-export default function HotelDetailModal({ isOpen, onClose, hotelId, onSuccess }: HotelDetailModalProps) {
+export default function HotelDetailModal({ isOpen, onClose, hotelId, role, onSuccess }: HotelDetailModalProps) {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState<boolean>(false);
     const [activeTab, setActiveTab] = useState<'basic' | 'rooms' | 'owner'>('basic');
 
     const roomCount = useSelector((state: ReduxState) => state.editHotelState.data?.roomTypes?.length || 0);
     const headerInfo = useSelector((state: ReduxState) => state.editHotelState.data ? { id: state.editHotelState.data.id, viewCount: state.editHotelState.data.viewCount } : null);
-
+    const currentService = role === UserRole.ADMIN ? hotelAdminService : hotelOwnerService;
     useEffect(() => {
         if (isOpen && hotelId) {
             const fetchDetail = async () => {
                 setLoading(true);
                 try {
-                    const data = await hotelAdminService.getHotelDetail(hotelId);
+                    const data = await currentService.getHotelDetail(hotelId);
                     dispatch(setInitialData(data));
                 } catch (error) {
                     window.alert("Lỗi khi tải chi tiết!");
@@ -97,14 +100,14 @@ export default function HotelDetailModal({ isOpen, onClose, hotelId, onSuccess }
                                 ({roomCount})
                             </div>
                         </button>
-                        <button
+                        {role === UserRole.ADMIN && (<button
                             onClick={() => setActiveTab('owner')}
                             className={`py-3 px-4 font-medium text-sm border-b-2 transition-colors ${
                                 activeTab === 'owner' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'
                             }`}
                         >
                             <div className="flex items-center gap-2"><User className="w-4 h-4"/>Chủ khách sạn</div>
-                        </button>
+                        </button>)}
                     </div>
                 )}
 
@@ -116,9 +119,9 @@ export default function HotelDetailModal({ isOpen, onClose, hotelId, onSuccess }
                         </div>
                     ) : (
                         <>
-                            {activeTab === 'basic' && <BasicInfoTab hotelId={hotelId!} onClose={onClose} onSuccess={onSuccess} />}
-                            {activeTab === 'rooms' && <RoomsTab hotelId={hotelId!} onClose={onClose} onSuccess={onSuccess} />}
-                            {activeTab === 'owner' && <OwnerTab hotelId={hotelId!} onClose={onClose} />}
+                            {activeTab === 'basic' && <BasicInfoTab hotelId={hotelId!} role={role} onClose={onClose} onSuccess={onSuccess} />}
+                            {activeTab === 'rooms' && <RoomsTab hotelId={hotelId!} role={role} onClose={onClose} onSuccess={onSuccess} />}
+                            {activeTab === 'owner' && role === UserRole.ADMIN && <OwnerTab hotelId={hotelId!} onClose={onClose} />}
                         </>
                     )}
                 </div>

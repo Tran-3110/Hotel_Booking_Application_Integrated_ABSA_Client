@@ -1,4 +1,4 @@
-export type HotelStatus = 'AVAILABLE' | 'FULL' | 'UNAVAILABLE' | string;
+import {HotelStatus} from "@/common/enums/hotel";
 
 export interface AddressResponse {
     id: string; 
