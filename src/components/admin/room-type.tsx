@@ -15,10 +15,27 @@ import MultiUploadBox from "@/components/upload/multi-upload-box";
 import { FilePreview } from "@/common/types/file";
 import { cloudinary } from "@/services/upload-service";
 import { RoomDetailResponse, RoomUtilityResponse } from "@/common/types/admin/hotel-detail";
-import { hotelAdminService, UpdateRoomTypeRequest } from "@/services/admin/hotel-admin-service";
+import { hotelAdminService } from "@/services/admin/hotel-admin-service";
+import { hotelOwnerService } from "@/services/owner/hotel-owner-service";
+import { UpdateRoomTypeRequest } from "@/common/types/request/hotel-management";
+import { UserRole } from "@/common/enums/user";
 
-export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: string, onSuccess?: () => void, onClose: () => void }) {
+export default function RoomsTab({
+                                     hotelId,
+                                     role,
+                                     onSuccess,
+                                     onClose
+                                 }: {
+    hotelId: string,
+    role: UserRole,
+    onSuccess?: () => void,
+    onClose: () => void
+}) {
     const dispatch = useDispatch();
+
+    const isOwner = role === UserRole.OWNER;
+    const currentService = isOwner ? hotelOwnerService : hotelAdminService;
+
     const { data: formData } = useSelector((state: ReduxState) => state.editHotelState);
     const rooms = formData?.roomTypes || [];
 
@@ -33,14 +50,14 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
     useEffect(() => {
         const fetchUtilities = async () => {
             try {
-                const data = await hotelAdminService.getRoomUtilities();
+                const data = await currentService.getRoomUtilities();
                 setAvailableRoomUtilities(data);
             } catch (error) {
                 window.alert("Lỗi lấy danh sách tiện ích phòng!");
             }
         };
         fetchUtilities();
-    }, []);
+    }, [role]);
 
     useEffect(() => {
         if (rooms) {
@@ -117,9 +134,24 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
         dispatch(updateRoomField({ roomIndex, field: 'roomDetails', value: newDetails }));
     };
 
+    // Xử lý xóa mã phòng (RoomDetail)
     const handleRemoveRoomDetail = (roomIndex: number, detailIndex: number) => {
         const newDetails = [...(rooms[roomIndex].roomDetails || [])];
-        newDetails.splice(detailIndex, 1);
+        const targetDetail = newDetails[detailIndex];
+
+        if (targetDetail.id) {
+            if (isOwner) {
+                // Đối với Owner: Xóa hẳn khỏi danh sách hiển thị UI
+                newDetails.splice(detailIndex, 1);
+            } else {
+                // Đối với Admin: Vô hiệu hóa (isActive = false)
+                newDetails[detailIndex] = { ...targetDetail, isActive: false };
+            }
+        } else {
+            // Mã phòng mới chưa lưu -> Xóa khỏi danh sách UI
+            newDetails.splice(detailIndex, 1);
+        }
+
         dispatch(updateRoomField({ roomIndex, field: 'roomDetails', value: newDetails }));
     };
 
@@ -189,7 +221,7 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                 })) || []
             };
 
-            const data = await hotelAdminService.updateRoomType(req);
+            const data = await currentService.updateRoomType(req);
             dispatch(updateRoomType({ index: index, data: data }));
 
             window.alert(`Lưu hạng phòng "${room.name}" thành công!`);
@@ -203,14 +235,14 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
 
     const handleUpdateActive = async (index: number) => {
         const room = rooms[index];
-        const currentActive = room.isActive !== false; 
-        const newActiveState = !currentActive; 
+        const currentActive = room.isActive !== false;
+        const newActiveState = !currentActive;
 
         if (window.confirm(`Bạn có chắc chắn muốn ${newActiveState ? 'kích hoạt' : 'vô hiệu hóa'} hạng phòng "${room.name || 'này'}" không?`)) {
             try {
                 if (room.id) {
                     setSavingIndex(index);
-                    const res = await hotelAdminService.updateActiveRoomType({
+                    const res = await currentService.updateActiveRoomType({
                         id: room.id, active: newActiveState
                     });
 
@@ -223,6 +255,45 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                 }
             } catch (error) {
                 window.alert("Đã có lỗi xảy ra!");
+            } finally {
+                setSavingIndex(null);
+            }
+        }
+    };
+
+    // Owner bấm Xóa phòng -> Gọi API set active = false và XÓA HẲN khỏi danh sách UI
+    const handleDeleteSavedRoomByOwner = async (index: number) => {
+        const room = rooms[index];
+        if (window.confirm(`Bạn có chắc chắn muốn xóa hạng phòng "${room.name || 'này'}" không?`)) {
+            try {
+                if (room.id) {
+                    setSavingIndex(index);
+                    const res = await hotelOwnerService.updateActiveRoomType({
+                        id: room.id,
+                        active: false
+                    });
+
+                    if (res.success) {
+                        // Xóa trực tiếp phòng này khỏi mảng state trong Redux
+                        dispatch(removeRoomType(index));
+                        // Cập nhật lại state lưu trữ ảnh cục bộ
+                        setRoomImages(prev => {
+                            const newState: Record<number, FilePreview[]> = {};
+                            for (let i = 0; i < rooms.length; i++) {
+                                if (i < index) newState[i] = prev[i] || [];
+                                else if (i > index) newState[i - 1] = prev[i] || [];
+                            }
+                            return newState;
+                        });
+
+                        window.alert(`Đã xóa hạng phòng "${room.name}" thành công!`);
+                        if(onSuccess) onSuccess();
+                    } else {
+                        window.alert("Xóa hạng phòng thất bại!");
+                    }
+                }
+            } catch (error) {
+                window.alert("Đã có lỗi xảy ra khi xóa phòng!");
             } finally {
                 setSavingIndex(null);
             }
@@ -252,7 +323,7 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                             Danh sách hạng phòng ({rooms.length})
                         </h3>
                     </div>
-                    <button onClick={handleAddRoomType} className="bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm transition-colors">
+                    <button onClick={handleAddRoomType} className="bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm transition-colors cursor-pointer">
                         <Plus className="w-4 h-4"/> Thêm hạng phòng mới
                     </button>
                 </div>
@@ -274,7 +345,7 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                         return (
                             <div key={room.id || index} className={`bg-white border ${isSavingThis ? 'border-purple-300 ring-4 ring-purple-50' : 'border-gray-200'} rounded-xl shadow-sm relative group transition-all ${isInactive ? 'opacity-75 grayscale-[20%]' : ''}`}>
 
-                                {/* Badge đánh số và báo trạng thái vô hiệu hóa */}
+                                {/* Badge đánh số và báo trạng thái vô hiệu hóa (Cho Admin) */}
                                 <div className={`absolute top-0 right-8 -translate-y-1/2 text-white text-xs font-bold px-4 py-1 rounded-full shadow-md z-10 ${isInactive ? 'bg-gray-500' : 'bg-gradient-to-r from-purple-600 to-indigo-600'}`}>
                                     Phòng #{index + 1} {isInactive ? "(Đã vô hiệu hóa)" : ""}
                                 </div>
@@ -325,13 +396,13 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                                                     {room.roomUtilities?.map((u) => (
                                                         <span key={u.id} className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
                                                             {u.name}
-                                                            <button onClick={(e) => { e.stopPropagation(); toggleRoomUtility(index, u); }} className="hover:bg-emerald-200 hover:text-emerald-900 rounded-full w-4 h-4 flex items-center justify-center">×</button>
+                                                            <button onClick={(e) => { e.stopPropagation(); toggleRoomUtility(index, u); }} className="hover:bg-emerald-200 hover:text-emerald-900 rounded-full w-4 h-4 flex items-center justify-center cursor-pointer">×</button>
                                                         </span>
                                                     ))}
                                                 </div>
 
                                                 {isDropdownOpen && (
-                                                    <div className="absolute w-full left-0 mt-2 top-full bg-white border border-gray-200 shadow-xl rounded-xl p-2 grid grid-cols-1 sm:grid-cols-2 gap-1 max-h-48 overflow-y-auto">
+                                                    <div className="absolute w-full left-0 mt-2 top-full bg-white border border-gray-200 shadow-xl rounded-xl p-2 grid grid-cols-1 sm:grid-cols-2 gap-1 max-h-48 overflow-y-auto z-30">
                                                         {availableRoomUtilities.map(utility => {
                                                             const isSelected = room.roomUtilities?.some((u) => u.id === utility.id);
                                                             return (
@@ -353,7 +424,7 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                                                     <h5 className="text-sm font-semibold text-gray-700 flex items-center gap-1">
                                                         <DoorOpen className="w-4 h-4 text-indigo-500"/> Mã phòng thực tế ({room.roomDetails?.length || 0})
                                                     </h5>
-                                                    <button onClick={() => handleAddRoomDetail(index)} className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-md flex items-center justify-center hover:bg-indigo-200 transition-colors" title="Thêm mã phòng">
+                                                    <button onClick={() => handleAddRoomDetail(index)} className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-md flex items-center justify-center hover:bg-indigo-200 transition-colors cursor-pointer" title="Thêm mã phòng">
                                                         <Plus className="w-4 h-4"/>
                                                     </button>
                                                 </div>
@@ -361,10 +432,18 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                                                     {room.roomDetails?.map((detail, dIndex: number) => (
                                                         <div key={detail.id || dIndex} className={`flex items-center gap-2 p-2 rounded-lg border transition-colors ${detail.isActive !== false ? 'bg-white border-green-200 shadow-sm' : 'bg-gray-100 border-gray-300 opacity-70'}`}>
                                                             <input type="text" placeholder="VD: P101" value={detail.roomCode} onChange={(e) => handleUpdateRoomDetail(index, dIndex, 'roomCode', e.target.value)} className={`flex-1 bg-transparent outline-none text-sm font-bold ${detail.isActive !== false ? 'text-gray-800' : 'text-gray-500'}`}/>
+
+                                                            {/* Checkbox đổi trạng thái Active/Inactive */}
                                                             <label className="flex items-center cursor-pointer" title="Trạng thái hoạt động">
                                                                 <input type="checkbox" checked={detail.isActive !== false} onChange={(e) => handleUpdateRoomDetail(index, dIndex, 'isActive', e.target.checked)} className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 cursor-pointer"/>
                                                             </label>
-                                                            <button onClick={() => handleRemoveRoomDetail(index, dIndex)} className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors" title="Xóa mã phòng này">
+
+                                                            {/* Nút Xóa mã phòng */}
+                                                            <button
+                                                                onClick={() => handleRemoveRoomDetail(index, dIndex)}
+                                                                className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors cursor-pointer"
+                                                                title={detail.id ? "Xóa mã phòng" : "Xóa mã phòng chưa lưu"}
+                                                            >
                                                                 <Trash2 className="w-4 h-4"/>
                                                             </button>
                                                         </div>
@@ -394,36 +473,48 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                                     </div>
                                 </div>
 
-                                {/* ACTION BAR - XỬ LÝ ẨN/HIỆN NÚT */}
+                                {/* ACTION BAR */}
                                 <div className="mt-6 px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-xl flex items-center justify-between">
                                     <span className="text-xs text-gray-400 italic font-medium">
                                         {room.id ? `ID Phòng: ${room.id}` : "Phòng mới chưa lưu"}
                                     </span>
                                     <div className="flex items-center gap-3">
 
-                                        {/* NẾU PHÒNG ĐÃ LƯU (CÓ ID) -> HIỂN THỊ NÚT VÔ HIỆU HÓA / KÍCH HOẠT */}
+                                        {/* NẾU PHÒNG ĐÃ LƯU (CÓ ID) */}
                                         {room.id ? (
-                                            <button
-                                                onClick={() => handleUpdateActive(index)}
-                                                disabled={savingIndex !== null}
-                                                className={`px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 ${
-                                                    !isInactive
-                                                        ? 'text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200'
-                                                        : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200'
-                                                }`}
-                                            >
-                                                {!isInactive ? (
-                                                    <><PowerOff className="w-4 h-4"/> Vô hiệu hóa</>
-                                                ) : (
-                                                    <><Power className="w-4 h-4"/> Kích hoạt lại</>
-                                                )}
-                                            </button>
+                                            isOwner ? (
+                                                /* Dành cho Owner: Nút Xóa hẳn khỏi danh sách */
+                                                <button
+                                                    onClick={() => handleDeleteSavedRoomByOwner(index)}
+                                                    disabled={savingIndex !== null}
+                                                    className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50 border border-red-200"
+                                                >
+                                                    <Trash2 className="w-4 h-4"/> Xóa phòng
+                                                </button>
+                                            ) : (
+                                                /* Dành cho Admin: Nút Vô hiệu hóa / Kích hoạt lại hạng phòng */
+                                                <button
+                                                    onClick={() => handleUpdateActive(index)}
+                                                    disabled={savingIndex !== null}
+                                                    className={`px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50 ${
+                                                        !isInactive
+                                                            ? 'text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200'
+                                                            : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200'
+                                                    }`}
+                                                >
+                                                    {!isInactive ? (
+                                                        <><PowerOff className="w-4 h-4"/> Vô hiệu hóa</>
+                                                    ) : (
+                                                        <><Power className="w-4 h-4"/> Kích hoạt lại</>
+                                                    )}
+                                                </button>
+                                            )
                                         ) : (
-                                            /* NẾU PHÒNG CHƯA LƯU (KHÔNG CÓ ID) -> HIỂN THỊ NÚT XÓA */
+                                            /* NẾU PHÒNG CHƯA LƯU (KHÔNG CÓ ID) -> HIỂN THỊ NÚT XÓA HẠNG PHÒNG MỚI */
                                             <button
                                                 onClick={() => handleRemoveUnsavedRoom(index)}
                                                 disabled={savingIndex !== null}
-                                                className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 border border-red-200"
+                                                className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50 border border-red-200"
                                             >
                                                 <Trash2 className="w-4 h-4"/> Xóa phòng
                                             </button>
@@ -432,7 +523,7 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                                         <button
                                             onClick={() => handleSaveSingleRoom(index)}
                                             disabled={savingIndex !== null || isInactive}
-                                            className="px-6 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center gap-2 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="px-6 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center gap-2 shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             {isSavingThis ? (
                                                 <>
@@ -454,7 +545,7 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                 </div>
             </div>
 
-            {/* footer  */}
+            {/* FOOTER */}
             <div className="px-6 py-4 border-t border-gray-200 bg-white flex justify-between items-center shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-30">
                 <button
                     type="button"
@@ -464,12 +555,12 @@ export default function RoomsTab({ hotelId, onSuccess, onClose }: { hotelId: str
                             setReset(prev => prev + 1);
                         }
                     }}
-                    className="px-4 py-2 text-sm font-medium text-amber-600 hover:bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-amber-600 hover:bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                 >
                     Reset dữ liệu
                 </button>
 
-                <button onClick={onClose} className="px-8 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                <button onClick={onClose} className="px-8 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer">
                     Đóng cửa sổ
                 </button>
             </div>

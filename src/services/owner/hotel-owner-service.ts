@@ -3,7 +3,7 @@ import apiClient from "@/services/api-client";
 import {GetAdminSnapshotHotelResponse} from "@/common/types/admin/snapshot-hotel";
 import {
     AdminHotelDetailResponse,
-    HotelUtilityResponse, OwnerResponse,
+    HotelUtilityResponse,
     RoomTypeResponse,
     RoomUtilityResponse,
     UpdateActiveHotelResponse,
@@ -16,13 +16,13 @@ import {
     UpdateHotelInfoRequest, UpdateRoomTypeRequest
 } from "@/common/types/request/hotel-management";
 
-export const hotelAdminService = {
+export const hotelOwnerService = {
     createHotel: async (req: AddHotelRequest): Promise<boolean> => {
-        const res = await apiClient.post(`/admin/hotels/create`, req);
+        const res = await apiClient.post(`/owner/hotels/create`, req);
         return res.data
     },
     getHotelList: async (page: number, size: number, sort: string, keyword?: string): Promise<PageResponse<GetAdminSnapshotHotelResponse>> => {
-        const res = await apiClient.get(`/admin/hotels/get`, {
+        const res = await apiClient.get(`/owner/hotels/get`, {
             params: {
                 page: page,
                 size: size,
@@ -33,47 +33,39 @@ export const hotelAdminService = {
         return res.data
     },
     getHotelDetail: async (id: string): Promise<AdminHotelDetailResponse> => {
-        const res = await apiClient.get(`/admin/hotels/${id}`)
+        const res = await apiClient.get(`/owner/hotels/${id}`)
         return res.data
     },
     getHotelUtilities: async (): Promise<HotelUtilityResponse[]> => {
-        const res = await apiClient.get(`/admin/hotels/utilities`)
+        const res = await apiClient.get(`/owner/hotels/utilities`)
         return res.data
     },
     getRoomUtilities: async (): Promise<RoomUtilityResponse[]> => {
-        const res = await apiClient.get(`/admin/hotels/room-utilities`)
+        const res = await apiClient.get(`/owner/hotels/room-utilities`)
         return res.data
     },
     updateHotelInfo: async (req: UpdateHotelInfoRequest): Promise<AdminHotelDetailResponse> => {
-        const res = await apiClient.put(`/admin/hotels/update-hotel`, req)
+        const res = await apiClient.put(`/owner/hotels/update-hotel`, req)
         return res.data
     },
     updateActive: async (req: UpdateActiveHotelRequest): Promise<UpdateActiveHotelResponse> => {
-        const res = await apiClient.patch(`/admin/hotels/active`, req)
+        const res = await apiClient.patch(`/owner/hotels/active`, req)
         return res.data
     },
     updateRoomType: async (req: UpdateRoomTypeRequest): Promise<RoomTypeResponse> => {
-        const res = await apiClient.put(`/admin/hotels/update-room-type`, req)
+        const res = await apiClient.put(`/owner/hotels/update-room-type`, req)
         return res.data
     },
     updateActiveRoomType: async (req: UpdateActiveRoomTypeRequest): Promise<UpdateActiveRoomTypeResponse> => {
-        const res = await apiClient.patch(`/admin/hotels/active-room-type`, req)
-        return res.data
-    },
-    changeHotelOwner: async (req: {hotelId: string, username: string}): Promise<OwnerResponse> => {
-        const res = await apiClient.patch(`/admin/hotels/owner`, req)
+        const res = await apiClient.patch(`/owner/hotels/active-room-type`, req)
         return res.data
     },
     getHotelComments: async (hotelId: string, page: number, size: number): Promise<PageResponse<AdminCommentResponse>> => {
-        const res = await apiClient.get(`/admin/hotels/comments/${hotelId}`, {
+        const res = await apiClient.get(`/owner/hotels/comments/${hotelId}`, {
             params: {
                 page, size
             }
         })
-        return res.data
-    },
-    toggleCommentStatus: async (id: string, active: boolean): Promise<boolean> => {
-        const res = await apiClient.patch(`/admin/hotels/comments/active/${id}`, active)
         return res.data
     }
 }
