@@ -12,6 +12,7 @@ import { formatDate } from "@/common/utils/format";
 import { Button } from "@/components/ui/button";
 import { createPaymentUrl } from "@/services/payment-service";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const TAB_CONFIG = [
     { value: OrderStatus.PENDING, label: "Chờ xử lý" },
@@ -267,6 +268,18 @@ export default function OrderPage() {
                                                 <Star className="w-4 h-4" /> Đánh giá
                                             </Button>
                                             )}
+                                            {
+                                                order.status === OrderStatus.PENDING || order.status === OrderStatus.CONFIRMED &&
+                                                <Button
+                                                    className="flex-1 sm:flex-none px-6 py-5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl text-sm transition-colors text-center shadow-sm"
+                                                    onClick={async () => {
+                                                        await bookingService.updateOrderStatus(order.id, OrderStatus.CANCELLED)
+                                                        toast.success("Hủy đơn đặt phòng thành công")
+                                                    }}
+                                                >
+                                                    Hủy
+                                                </Button>
+                                            }
                                             {order.status === OrderStatus.CONFIRMED &&
                                                 <Button
                                                     className="flex-1 sm:flex-none px-6 py-5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl text-sm transition-colors text-center shadow-sm"
