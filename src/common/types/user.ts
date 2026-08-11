@@ -1,5 +1,4 @@
-import { UserRole } from "../enums/user";
-import { Gender } from "./admin/hotel-detail";
+import {Gender, UserRole} from "../enums/user";
 
 export interface UserDto {
     userId: string;
