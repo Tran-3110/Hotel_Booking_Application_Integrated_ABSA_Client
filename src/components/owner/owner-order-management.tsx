@@ -7,7 +7,7 @@ import { AdminOrderResponse, OrderDetailResponse } from "@/common/types/admin/or
 import { orderOwnerService } from "@/services/owner/order-owner-service";
 import { formatDate } from "@/common/utils/format";
 import { OrderStatus } from "@/common/enums/order";
-import { CheckCircle, Clock, Check, Ban, Eye, AlertCircle, Layers } from 'lucide-react';
+import { CheckCircle, Clock, Check, Ban, Eye, AlertCircle, Layers, House } from 'lucide-react';
 
 export default function OrderOwnerManagement() {
     const [orders, setOrders] = useState<AdminOrderResponse[]>([]);
@@ -16,7 +16,7 @@ export default function OrderOwnerManagement() {
     const [selectedOrder, setSelectedOrder] = useState<AdminOrderResponse | null>(null);
 
     // Chỉ sử dụng 2 tab: 'PENDING' và 'ALL'
-    const [activeTab, setActiveTab] = useState<'PENDING' | 'ALL'>('PENDING');
+    const [activeTab, setActiveTab] = useState<'PENDING' | "CHECK_IN" | "COMPLETED" | 'ALL'>('PENDING');
 
     // Pagination & Filter States
     const [page, setPage] = useState<number>(0);
@@ -46,6 +46,11 @@ export default function OrderOwnerManagement() {
             let statusFilter: OrderStatus | undefined = undefined;
             if (activeTab === 'PENDING') {
                 statusFilter = OrderStatus.PENDING;
+            } else if (activeTab === 'CHECK_IN') {
+                statusFilter = OrderStatus.PAID;
+            }
+            else if (activeTab === "COMPLETED") {
+                statusFilter = OrderStatus.CHECKED_IN
             }
 
             const res = await orderOwnerService.getOrders({
@@ -70,6 +75,36 @@ export default function OrderOwnerManagement() {
     useEffect(() => {
         fetchOrders();
     }, [page, debouncedSearch, startDate, endDate, activeTab]);
+
+
+    // Thao tác Duyệt Checkin và Checkout
+    const handleArrivalOrder = async (orderId: string, newStatus: OrderStatus.CHECKED_IN | OrderStatus.COMPLETED) => {
+        const actionText = newStatus === OrderStatus.CHECKED_IN ? "CHECK-IN" : "CHECK-OUT";
+
+        if (!window.confirm(`Bạn có chắc chắn muốn xác nhận ${actionText} cho đơn hàng #${orderId.substring(0, 8)}?`)) return;
+
+        setProcessingId(orderId);
+        try {
+            const success = await orderOwnerService.changeStatus(orderId, newStatus);
+            if (success) {
+                window.alert(`Cập nhật trạng thái ${actionText} thành công!`);
+
+                // Cập nhật lại danh sách orders trên giao diện ngay lập tức
+                setOrders(prev => prev.map(o => o.id === orderId ? { ...o, orderStatus: newStatus } : o));
+
+                if (selectedOrder?.id === orderId) {
+                    setSelectedOrder(prev => prev ? { ...prev, orderStatus: newStatus } : null);
+                }
+            } else {
+                window.alert("Thao tác thất bại. Vui lòng thử lại!");
+            }
+        } catch (error) {
+            console.error("Error processing order:", error);
+            window.alert("Đã xảy ra lỗi trong quá trình xử lý!");
+        } finally {
+            setProcessingId(null);
+        }
+    };
 
     // Thao tác Duyệt (CONFIRMED) hoặc Từ Chối (REJECTED)
     const handleProcessOrder = async (orderId: string, newStatus: OrderStatus.CONFIRMED | OrderStatus.REJECTED) => {
@@ -156,11 +191,10 @@ export default function OrderOwnerManagement() {
             <div className="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
                 <button
                     onClick={() => { setActiveTab('PENDING'); setPage(0); }}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                        activeTab === 'PENDING'
-                            ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
-                            : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'
-                    }`}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${activeTab === 'PENDING'
+                        ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
+                        : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'
+                        }`}
                 >
                     <Clock className="w-4 h-4" />
                     Cần xét duyệt
@@ -171,13 +205,35 @@ export default function OrderOwnerManagement() {
                     )}
                 </button>
 
+
+                <button
+                    onClick={() => { setActiveTab('CHECK_IN'); setPage(0); }}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${activeTab === 'CHECK_IN'
+                        ? 'bg-purple-600 text-white shadow-md shadow-purple-200'
+                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                        }`}
+                >
+                    <House className="w-4 h-4" />
+                    Quản lý nhận phòng
+                </button>
+
+                <button
+                    onClick={() => { setActiveTab('COMPLETED'); setPage(0); }}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${activeTab === 'COMPLETED'
+                        ? 'bg-purple-600 text-white shadow-md shadow-purple-200'
+                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                        }`}
+                >
+                    <House className="w-4 h-4" />
+                    Quản lý trả phòng
+                </button>
+
                 <button
                     onClick={() => { setActiveTab('ALL'); setPage(0); }}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                        activeTab === 'ALL'
-                            ? 'bg-purple-600 text-white shadow-md shadow-purple-200'
-                            : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-                    }`}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${activeTab === 'ALL'
+                        ? 'bg-purple-600 text-white shadow-md shadow-purple-200'
+                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                        }`}
                 >
                     <Layers className="w-4 h-4" />
                     Tất cả đơn hàng
@@ -249,184 +305,235 @@ export default function OrderOwnerManagement() {
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
-                        <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã đơn / Khách hàng</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khách sạn</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phòng đặt</th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Doanh thu / Phí sàn</th>
-                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động xét duyệt</th>
-                        </tr>
+                            <tr>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã đơn / Khách hàng</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khách sạn</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phòng đặt</th>
+                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Doanh thu / Phí sàn</th>
+                                <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động xét duyệt</th>
+                            </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                        {loading ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
-                                    Đang tải danh sách đơn đặt phòng...
-                                </td>
-                            </tr>
-                        ) : orders.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
-                                    {activeTab === 'PENDING' ? (
-                                        <div className="flex flex-col items-center justify-center py-6">
-                                            <CheckCircle className="w-10 h-10 text-emerald-500 mb-2 opacity-80" />
-                                            <p className="font-semibold text-gray-700">Tuyệt vời! Không có đơn hàng nào chờ duyệt.</p>
-                                        </div>
-                                    ) : "Không có đơn đặt phòng nào."}
-                                </td>
-                            </tr>
-                        ) : (
-                            orders.map((order) => {
-                                const { totalActual, totalFee } = calculateOrderTotal(order.orderDetails);
-                                const isPending = order.orderStatus === OrderStatus.PENDING;
-                                const isProcessingThis = processingId === order.id;
-
-                                return (
-                                    <tr key={order.id} className="hover:bg-purple-50/40 transition-colors">
-                                        {/* Khách hàng & Mã đơn */}
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-start">
-                                                <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center mt-1">
-                                                    {order.customer?.avatarUrl ? (
-                                                        <img
-                                                            className="h-full w-full object-cover"
-                                                            src={order.customer.avatarUrl}
-                                                            alt={order.customer.username}
-                                                        />
-                                                    ) : (
-                                                        <span className="text-gray-400 font-bold text-lg">
-                                                            {order.customer?.username?.charAt(0).toUpperCase() || 'C'}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="ml-3 flex flex-col">
-                                                    <span className="text-sm font-bold text-gray-900">
-                                                        {order.customer?.username || "N/A"}
-                                                    </span>
-                                                    <span className="text-xs text-gray-500">
-                                                        {order.customer?.email}
-                                                    </span>
-                                                    <span className="text-[10px] text-purple-600 font-semibold mt-0.5">
-                                                        #{order.id.substring(0, 8)}
-                                                    </span>
-                                                </div>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
+                                        Đang tải danh sách đơn đặt phòng...
+                                    </td>
+                                </tr>
+                            ) : orders.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
+                                        {activeTab === 'PENDING' ? (
+                                            <div className="flex flex-col items-center justify-center py-6">
+                                                <CheckCircle className="w-10 h-10 text-emerald-500 mb-2 opacity-80" />
+                                                <p className="font-semibold text-gray-700">Tuyệt vời! Không có đơn hàng nào chờ duyệt.</p>
                                             </div>
-                                        </td>
+                                        ) : "Không có đơn đặt phòng nào."}
+                                    </td>
+                                </tr>
+                            ) : (
+                                orders.map((order) => {
+                                    const { totalActual, totalFee } = calculateOrderTotal(order.orderDetails);
+                                    const isPending = order.orderStatus === OrderStatus.PENDING;
+                                    const isPaid = order.orderStatus === OrderStatus.PAID;
+                                    const isCheckin = order.orderStatus === OrderStatus.CHECKED_IN;
+                                    const isProcessingThis = processingId === order.id;
 
-                                        {/* Khách sạn */}
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {order.hotel ? (
-                                                <div className="flex items-center gap-3">
-                                                    {order.hotel.thumbnail && (
-                                                        <img
-                                                            src={order.hotel.thumbnail}
-                                                            alt={order.hotel.name}
-                                                            className="h-9 w-9 rounded-lg object-cover border border-gray-200"
-                                                        />
-                                                    )}
-                                                    <div className="flex flex-col">
-                                                        <span className="text-sm font-semibold text-gray-900 max-w-[180px] truncate" title={order.hotel.name}>
-                                                            {order.hotel.name}
+                                    return (
+                                        <tr key={order.id} className="hover:bg-purple-50/40 transition-colors">
+                                            {/* Khách hàng & Mã đơn */}
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-start">
+                                                    <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center mt-1">
+                                                        {order.customer?.avatarUrl ? (
+                                                            <img
+                                                                className="h-full w-full object-cover"
+                                                                src={order.customer.avatarUrl}
+                                                                alt={order.customer.username}
+                                                            />
+                                                        ) : (
+                                                            <span className="text-gray-400 font-bold text-lg">
+                                                                {order.customer?.username?.charAt(0).toUpperCase() || 'C'}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="ml-3 flex flex-col">
+                                                        <span className="text-sm font-bold text-gray-900">
+                                                            {order.customer?.username || "N/A"}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500">
+                                                            {order.customer?.email}
+                                                        </span>
+                                                        <span className="text-[10px] text-purple-600 font-semibold mt-0.5">
+                                                            #{order.id.substring(0, 8)}
                                                         </span>
                                                     </div>
                                                 </div>
-                                            ) : (
-                                                <span className="text-xs italic text-gray-400">Chưa gắn khách sạn</span>
-                                            )}
-                                        </td>
+                                            </td>
 
-                                        {/* Chi tiết Phòng */}
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-col gap-1.5 max-w-[240px]">
-                                                {order.orderDetails && order.orderDetails.length > 0 ? (
-                                                    order.orderDetails.map((detail, index) => (
-                                                        <div key={index} className="text-xs border-b border-gray-100 last:border-none pb-1">
-                                                            <span className="font-semibold text-gray-800">{detail.roomTypeName}</span>
-                                                            <div className="flex flex-wrap gap-1 mt-0.5">
-                                                                {detail.roomDetails?.map((room, index) => (
-                                                                    <span key={index} className="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-[10px] font-mono">
-                                                                        P.{room.roomCode}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
+                                            {/* Khách sạn */}
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {order.hotel ? (
+                                                    <div className="flex items-center gap-3">
+                                                        {order.hotel.thumbnail && (
+                                                            <img
+                                                                src={order.hotel.thumbnail}
+                                                                alt={order.hotel.name}
+                                                                className="h-9 w-9 rounded-lg object-cover border border-gray-200"
+                                                            />
+                                                        )}
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-semibold text-gray-900 max-w-[180px] truncate" title={order.hotel.name}>
+                                                                {order.hotel.name}
+                                                            </span>
                                                         </div>
-                                                    ))
+                                                    </div>
                                                 ) : (
-                                                    <span className="text-xs text-gray-400 italic">Không có thông tin phòng</span>
+                                                    <span className="text-xs italic text-gray-400">Chưa gắn khách sạn</span>
                                                 )}
-                                            </div>
-                                        </td>
+                                            </td>
 
-                                        {/* Doanh thu thực nhận & Phí sàn */}
-                                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                                            <div className="flex flex-col gap-0.5">
-                                                <span className="text-sm font-bold text-emerald-600">
-                                                    {totalActual.toLocaleString('vi-VN', {
-                                                        style: 'currency',
-                                                        currency: 'VND',
-                                                    })}
+                                            {/* Chi tiết Phòng */}
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col gap-1.5 max-w-[240px]">
+                                                    {order.orderDetails && order.orderDetails.length > 0 ? (
+                                                        order.orderDetails.map((detail, index) => (
+                                                            <div key={index} className="text-xs border-b border-gray-100 last:border-none pb-1">
+                                                                <span className="font-semibold text-gray-800">{detail.roomTypeName}</span>
+                                                                <div className="flex flex-wrap gap-1 mt-0.5">
+                                                                    {detail.roomDetails?.map((room, index) => (
+                                                                        <span key={index} className="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-[10px] font-mono">
+                                                                            P.{room.roomCode}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400 italic">Không có thông tin phòng</span>
+                                                    )}
+                                                </div>
+                                            </td>
+
+                                            {/* Doanh thu thực nhận & Phí sàn */}
+                                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="text-sm font-bold text-emerald-600">
+                                                        {totalActual.toLocaleString('vi-VN', {
+                                                            style: 'currency',
+                                                            currency: 'VND',
+                                                        })}
+                                                    </span>
+                                                    <span className="text-xs text-gray-400">
+                                                        Phí sàn: {totalFee.toLocaleString('vi-VN', {
+                                                            style: 'currency',
+                                                            currency: 'VND',
+                                                        })}
+                                                    </span>
+                                                </div>
+                                            </td>
+
+                                            {/* Trạng thái */}
+                                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusBadgeClass(order.orderStatus)}`}>
+                                                    {order.orderStatus}
                                                 </span>
-                                                <span className="text-xs text-gray-400">
-                                                    Phí sàn: {totalFee.toLocaleString('vi-VN', {
-                                                    style: 'currency',
-                                                    currency: 'VND',
-                                                })}
-                                                </span>
-                                            </div>
-                                        </td>
+                                            </td>
 
-                                        {/* Trạng thái */}
-                                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                                            <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusBadgeClass(order.orderStatus)}`}>
-                                                {order.orderStatus}
-                                            </span>
-                                        </td>
-
-                                        {/* Nút Xét duyệt & Thao tác */}
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex items-center justify-end gap-2">
-                                                {/* Nếu đơn PENDING -> Hiện nút Duyệt / Từ chối */}
-                                                {isPending ? (
-                                                    <>
-                                                        <button
-                                                            disabled={isProcessingThis}
-                                                            onClick={() => handleProcessOrder(order.id, OrderStatus.CONFIRMED)}
-                                                            className="text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
-                                                            title="Duyệt nhận đơn này"
-                                                        >
-                                                            <Check className="w-3.5 h-3.5" /> Duyệt
-                                                        </button>
-                                                        <button
-                                                            disabled={isProcessingThis}
-                                                            onClick={() => handleProcessOrder(order.id, OrderStatus.REJECTED)}
-                                                            className="text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
-                                                            title="Từ chối đơn hàng"
-                                                        >
-                                                            <Ban className="w-3.5 h-3.5" /> Từ chối
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setSelectedOrder(order)}
-                                                            className="text-gray-500 hover:text-gray-800 p-1.5 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-                                                            title="Xem chi tiết"
-                                                        >
-                                                            <Eye className="w-4 h-4" />
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => setSelectedOrder(order)}
-                                                        className="text-purple-600 hover:text-purple-900 font-semibold text-xs cursor-pointer bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
-                                                    >
-                                                        <Eye className="w-3.5 h-3.5" /> Chi tiết
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                        )}
+                                            {/* Nút Xét duyệt & Thao tác */}
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    {/* Nếu đơn PENDING -> Hiện nút Duyệt / Từ chối */}
+                                                    {isPending ? (
+                                                        <>
+                                                            <button
+                                                                disabled={isProcessingThis}
+                                                                onClick={() => handleProcessOrder(order.id, OrderStatus.CONFIRMED)}
+                                                                className="text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                                                                title="Duyệt nhận đơn này"
+                                                            >
+                                                                <Check className="w-3.5 h-3.5" /> Duyệt
+                                                            </button>
+                                                            <button
+                                                                disabled={isProcessingThis}
+                                                                onClick={() => handleProcessOrder(order.id, OrderStatus.REJECTED)}
+                                                                className="text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                                                                title="Từ chối đơn hàng"
+                                                            >
+                                                                <Ban className="w-3.5 h-3.5" /> Từ chối
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setSelectedOrder(order)}
+                                                                className="text-gray-500 hover:text-gray-800 p-1.5 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                                                                title="Xem chi tiết"
+                                                            >
+                                                                <Eye className="w-4 h-4" />
+                                                            </button>
+                                                        </>
+                                                    ) :
+                                                        isPaid ? (
+                                                            <>
+                                                                <button
+                                                                    disabled={isProcessingThis}
+                                                                    onClick={() => handleArrivalOrder(order.id, OrderStatus.CHECKED_IN)}
+                                                                    className="text-white bg-purple-600 hover:bg-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                                                                    title="Xác nhận khách đã nhận phòng"
+                                                                >
+                                                                    <Check className="w-3.5 h-3.5" /> Check-in
+                                                                </button>
+                                                                <button
+                                                                    disabled={isProcessingThis}
+                                                                    onClick={() => handleArrivalOrder(order.id, OrderStatus.COMPLETED)}
+                                                                    className="text-white bg-purple-600 hover:bg-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                                                                    title="Xác nhận khách đã trả phòng"
+                                                                >
+                                                                    <CheckCircle className="w-3.5 h-3.5" /> Check-out
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setSelectedOrder(order)}
+                                                                    className="text-gray-500 hover:text-gray-800 p-1.5 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                                                                    title="Xem chi tiết"
+                                                                >
+                                                                    <Eye className="w-4 h-4" />
+                                                                </button>
+                                                            </>
+                                                        )
+                                                            :
+                                                            isCheckin ? (
+                                                                <>
+                                                                    <button
+                                                                        disabled={isProcessingThis}
+                                                                        onClick={() => handleArrivalOrder(order.id, OrderStatus.COMPLETED)}
+                                                                        className="text-white bg-purple-600 hover:bg-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                                                                        title="Xác nhận khách đã trả phòng"
+                                                                    >
+                                                                        <CheckCircle className="w-3.5 h-3.5" /> Check-out
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => setSelectedOrder(order)}
+                                                                        className="text-gray-500 hover:text-gray-800 p-1.5 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                                                                        title="Xem chi tiết"
+                                                                    >
+                                                                        <Eye className="w-4 h-4" />
+                                                                    </button>
+                                                                </>
+                                                            )
+                                                                : (
+                                                                    <button
+                                                                        onClick={() => setSelectedOrder(order)}
+                                                                        className="text-purple-600 hover:text-purple-900 font-semibold text-xs cursor-pointer bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                                                                    >
+                                                                        <Eye className="w-3.5 h-3.5" /> Chi tiết
+                                                                    </button>
+                                                                )
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
                         </tbody>
                     </table>
                 </div>
