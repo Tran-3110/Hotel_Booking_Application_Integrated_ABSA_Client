@@ -392,7 +392,7 @@ export default function OrderOwnerManagement() {
                                                         <button
                                                             disabled={isProcessingThis}
                                                             onClick={() => handleProcessOrder(order.id, OrderStatus.CONFIRMED)}
-                                                            className="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                                                            className="text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
                                                             title="Duyệt nhận đơn này"
                                                         >
                                                             <Check className="w-3.5 h-3.5" /> Duyệt
