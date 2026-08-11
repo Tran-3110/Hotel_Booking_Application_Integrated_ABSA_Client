@@ -5,7 +5,9 @@ const apiClient = axios.create({
     baseURL: `${process.env.NEXT_PUBLIC_API_URL || ""}${process.env.NEXT_PUBLIC_API_VERSION || ""}`,
     headers: {
         "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true"
     },
+    withCredentials: true
 });
 
 //Interceptor for request

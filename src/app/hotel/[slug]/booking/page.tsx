@@ -96,7 +96,7 @@ export default function CheckAvailabilityCard() {
 
     useEffect(() => {
         if (!hotelId) {
-            setIsNotFound(true);
+            // setIsNotFound(true);
             return;
         }
 
