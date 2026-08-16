@@ -48,9 +48,9 @@ export function NavBar() {
         <div
             className={cn(
                 "fixed top-0 z-50 w-full transition-all duration-300 bg-background py-2",
-                isScrolled
-                ? "border-b-2 shadow-md h-16"
-                : "border-transparent h-20"
+                // isScrolled ? 
+                // "border-b-2 shadow-md h-16" :
+                 "border-transparent h-20"
             )}
         >
             <div className="container mx-auto flex h-full items-center justify-between px-4">
@@ -94,7 +94,8 @@ export function NavBar() {
                         variant="ghost"
                         className={cn(
                             "relative cursor-pointer transition-colors",
-                            !isScrolled && "text-foreground dark:text-white hover:bg-black/10 dark:hover:bg-white/10"
+                            // !isScrolled && 
+                            "text-foreground dark:text-white hover:bg-black/10 dark:hover:bg-white/10"
                         )}
                     >
                         VND
@@ -104,7 +105,8 @@ export function NavBar() {
                         variant="ghost"
                         className={cn(
                             "relative cursor-pointer transition-colors",
-                            !isScrolled && "text-foreground dark:text-white hover:bg-black/10 dark:hover:bg-white/10"
+                            // !isScrolled && 
+                            "text-foreground dark:text-white hover:bg-black/10 dark:hover:bg-white/10"
                         )}
                         onClick={() => router.push("/register-owner")}
                     >
@@ -114,7 +116,8 @@ export function NavBar() {
                     <Button
                         className={cn(
                             "cursor-pointer transition-colors",
-                            !isScrolled && "text-foreground dark:text-white hover:bg-black/10 dark:hover:bg-white/10" // Đã sửa & gỡ bỏ theme === "light"
+                            // !isScrolled && 
+                            "text-foreground dark:text-white hover:bg-black/10 dark:hover:bg-white/10" // Đã sửa & gỡ bỏ theme === "light"
                         )}
                         variant="ghost"
                         size="icon"
@@ -187,7 +190,8 @@ export function NavBar() {
                                     <Button
                                         className={cn(
                                             "w-24 py-4.5 border border-black cursor-pointer transition-colors",
-                                            !isScrolled && "text-foreground dark:text-white hover:bg-black/10 dark:hover:bg-white/10" // Đã sửa
+                                            // !isScrolled && 
+                                            "text-foreground dark:text-white hover:bg-black/10 dark:hover:bg-white/10" // Đã sửa
                                         )}
                                         variant="ghost"
                                     >
@@ -197,7 +201,8 @@ export function NavBar() {
                                 <Link href="/register">
                                     <Button className={cn(
                                         "w-24 py-4.5 cursor-pointer transition-all",
-                                        !isScrolled && "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg dark:bg-white dark:text-black dark:hover:bg-white/90"
+                                        // !isScrolled && 
+                                        "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg dark:bg-white dark:text-black dark:hover:bg-white/90"
                                     )}>
                                         Đăng ký
                                     </Button>

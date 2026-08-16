@@ -81,15 +81,15 @@ export default function Home() {
 
     // 3. Xử lý hành động bấm nút Tìm kiếm
     const handleSearch = (selectedItem?: SuggestSearchResponse) => {
-        if((minPrice != "" && Number(minPrice) <= 0)  || (maxPrice != "" && Number(maxPrice) < 0)) {
+        if ((minPrice != "" && Number(minPrice) <= 0) || (maxPrice != "" && Number(maxPrice) < 0)) {
             alert("Khoảng giá phải lớn hơn 0.")
             return;
         }
-        if(minPrice != "" && maxPrice != "" && Number(maxPrice) <= Number(minPrice)) {
+        if (minPrice != "" && maxPrice != "" && Number(maxPrice) <= Number(minPrice)) {
             alert("Khoảng giá không hợp lệ. Vui lòng nhập lại!")
             return;
         }
-        
+
         const params = new URLSearchParams();
 
         // Từ khóa tìm kiếm
@@ -256,7 +256,7 @@ export default function Home() {
                 </div>
             </section>
 
-            <section className="max-w-7xl mx-auto px-6 py-12">
+            {/* <section className="max-w-7xl mx-auto px-6 py-12">
                 <div className="w-full space-y-6">
                     <div>
                         <h3 className="font-semibold text-2xl">Điểm đến đang thịnh hành</h3>
@@ -283,7 +283,7 @@ export default function Home() {
                         ))}
                     </div>
                 </div>
-            </section>
+            </section> */}
 
             <section className="max-w-7xl mx-auto px-6 py-8">
                 <div className="w-full space-y-6">
@@ -335,8 +335,8 @@ export default function Home() {
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-stretch">
                         {data?.promotionalHotels?.slice(0, 5).map(hotel => (
                             <Card key={hotel.id}
-                                  onClick={() => router.push(`/hotel/${transformTitleToSlug(hotel.name)}.${hotel.id}`)}
-                                  className="flex flex-col relative w-full pt-0 overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1">
+                                onClick={() => router.push(`/hotel/${transformTitleToSlug(hotel.name)}.${hotel.id}`)}
+                                className="flex flex-col relative w-full pt-0 overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1">
                                 <div className="relative w-full aspect-4/3 shrink-0">
                                     <Image
                                         className="object-cover"
