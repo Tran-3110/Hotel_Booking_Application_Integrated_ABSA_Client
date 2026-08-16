@@ -31,7 +31,7 @@ const navItems = [
         name: 'Trang Chủ Khách Sạn',
         href: '/owner/hotels',
         icon: ShieldCheck,
-    }
+    },
 ];
 
 export default function UserSideBar() {
