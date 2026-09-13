@@ -1,4 +1,8 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hotel Booking System with Aspect-Based Sentiment Analysis (ABSA)
+
+A hotel booking platform integrated with an **Aspect-Based Sentiment Analysis (ABSA)** model. The system deeply analyzes guest reviews across key dimensions (*cleanliness, service, location, pricing, amenities*) to deliver objective insights and support smarter booking decisions.
+
+---
 
 ## Getting Started
 
