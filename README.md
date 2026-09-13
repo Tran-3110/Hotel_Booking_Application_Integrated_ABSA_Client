@@ -1,6 +1,6 @@
 # Hotel Booking System with Aspect-Based Sentiment Analysis (ABSA)
 
-A hotel booking platform integrated with an **Aspect-Based Sentiment Analysis (ABSA)** model. The system deeply analyzes guest reviews across key dimensions (*cleanliness, service, location, pricing, amenities*) to deliver objective insights and support smarter booking decisions.
+The frontend client for a hotel booking platform built with **Next.js**. It features a modern booking user interface and seamlessly connects with an **Aspect-Based Sentiment Analysis (ABSA)** service to visualize multi-dimensional guest review insights (*cleanliness, service, location, pricing, amenities*).
 
 ---
 
